@@ -11,7 +11,9 @@ let package = Package(
         .executableTarget(
             name: "WhisperDB",
             dependencies: ["HotKey"],
-            path: "WhisperDB"
+            path: "WhisperDB",
+            exclude: ["Info.plist"],
+            resources: [.copy("Resources")]
         ),
     ]
 )

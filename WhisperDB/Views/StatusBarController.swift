@@ -7,6 +7,14 @@ final class StatusBarController: NSObject, ObservableObject {
     private var transcriptionManager: TranscriptionManager!
     private var stateObservation: NSKeyValueObservation?
     private var cancellables: [Any] = []
+    private static let audioLineSegments: [(x: CGFloat, y1: CGFloat, y2: CGFloat)] = [
+        (2, 10, 13),
+        (6, 6, 17),
+        (10, 3, 21),
+        (14, 8, 15),
+        (18, 5, 18),
+        (22, 10, 13),
+    ]
 
     func setup(with manager: TranscriptionManager) {
         self.transcriptionManager = manager
@@ -31,95 +39,67 @@ final class StatusBarController: NSObject, ObservableObject {
 
         switch state {
         case .idle:
-            button.image = makeCaptionsIcon(size: 18, strokeWidth: 1.5, color: .controlTextColor)
+            button.image = makeAudioLinesIcon(size: 18, strokeWidth: 1.5, color: .controlTextColor, isTemplate: true)
         case .recording:
-            button.image = makeRecordingIcon(size: 18, strokeWidth: 1.5, audioLevel: audioLevel)
+            button.image = makeListeningIcon(size: 18, strokeWidth: 1.7, audioLevel: audioLevel)
         case .processing:
-            button.image = makeCaptionsIcon(size: 18, strokeWidth: 1.5, color: .secondaryLabelColor)
+            button.image = makeAudioLinesIcon(
+                size: 18,
+                strokeWidth: 1.5,
+                color: NSColor(calibratedWhite: 0.74, alpha: 1),
+                isTemplate: false
+            )
         }
     }
 
-    /// Draws the Lucide "captions" icon: rounded rect with four caption-bar lines inside.
-    /// SVG source (24x24 viewBox):
-    ///   <rect width="18" height="14" x="3" y="5" rx="2"/>
-    ///   <path d="M7 15h4  M15 15h2  M7 11h2  M13 11h4"/>
-    private func makeCaptionsIcon(size: CGFloat, strokeWidth: CGFloat, color: NSColor) -> NSImage {
+    private func makeAudioLinesIcon(size: CGFloat, strokeWidth: CGFloat, color: NSColor, isTemplate: Bool) -> NSImage {
         let image = NSImage(size: NSSize(width: size, height: size), flipped: false) { rect in
             let scale = size / 24.0
             color.setStroke()
-
-            // Rounded rectangle frame
-            let rrRect = NSRect(x: 3 * scale, y: (24 - 5 - 14) * scale, width: 18 * scale, height: 14 * scale)
-            let rr = NSBezierPath(roundedRect: rrRect, xRadius: 2 * scale, yRadius: 2 * scale)
-            rr.lineWidth = strokeWidth
-            rr.stroke()
-
-            // Caption bars (SVG y-coords flipped because AppKit origin is bottom-left)
-            let lines: [(x1: CGFloat, x2: CGFloat, y: CGFloat)] = [
-                (7, 11, 24 - 15),   // M7 15h4
-                (15, 17, 24 - 15),  // M15 15h2
-                (7, 9, 24 - 11),    // M7 11h2
-                (13, 17, 24 - 11),  // M13 11h4
-            ]
-
-            for line in lines {
-                let path = NSBezierPath()
-                path.lineWidth = strokeWidth
-                path.lineCapStyle = .round
-                path.move(to: NSPoint(x: line.x1 * scale, y: line.y * scale))
-                path.line(to: NSPoint(x: line.x2 * scale, y: line.y * scale))
-                path.stroke()
-            }
-
+            Self.drawAudioLines(scale: scale, strokeWidth: strokeWidth)
             return true
         }
-        image.isTemplate = (color == .controlTextColor) // template mode only for idle (adapts to dark/light)
+        image.isTemplate = isTemplate
         return image
     }
 
-    /// Recording icon: red circle that pulses with audio level, with caption bars as transparent cutouts.
-    private func makeRecordingIcon(size: CGFloat, strokeWidth: CGFloat, audioLevel: Float) -> NSImage {
+    private func makeListeningIcon(size: CGFloat, strokeWidth: CGFloat, audioLevel: Float) -> NSImage {
         let image = NSImage(size: NSSize(width: size, height: size), flipped: false) { rect in
             let scale = size / 24.0
-            let level = CGFloat(audioLevel)
+            let level = min(max(CGFloat(audioLevel), 0), 1)
+            let opacity = 0.78 + 0.22 * level
+            let inset = 0.25 * scale
+            let backgroundRect = rect.insetBy(dx: inset, dy: inset)
+            let backgroundPath = NSBezierPath(
+                roundedRect: backgroundRect,
+                xRadius: 4 * scale,
+                yRadius: 4 * scale
+            )
+            NSColor.systemRed.withAlphaComponent(opacity).setFill()
+            backgroundPath.fill()
 
-            // Pulsing red circle — base opacity 0.6, pulses to 1.0 with audio
-            let circleOpacity = 0.6 + 0.4 * level
-            let circleColor = NSColor.systemRed.withAlphaComponent(circleOpacity)
-
-            // Circle fills the icon area with slight padding
-            let inset: CGFloat = 1 * scale
-            let circleRect = rect.insetBy(dx: inset, dy: inset)
-
-            // Draw the red circle
-            let circlePath = NSBezierPath(ovalIn: circleRect)
-            circleColor.setFill()
-            circlePath.fill()
-
-            // Draw caption bars as transparent cutouts using .clear blend mode
+            NSGraphicsContext.saveGraphicsState()
             NSGraphicsContext.current?.compositingOperation = .clear
-
-            // Caption bars (same pattern as the captions icon)
-            let lines: [(x1: CGFloat, x2: CGFloat, y: CGFloat)] = [
-                (7, 11, 24 - 15),
-                (15, 17, 24 - 15),
-                (7, 9, 24 - 11),
-                (13, 17, 24 - 11),
-            ]
-
-            for line in lines {
-                let path = NSBezierPath()
-                path.lineWidth = strokeWidth
-                path.lineCapStyle = .round
-                path.move(to: NSPoint(x: line.x1 * scale, y: line.y * scale))
-                path.line(to: NSPoint(x: line.x2 * scale, y: line.y * scale))
-                path.stroke()
-            }
+            NSColor.clear.setStroke()
+            Self.drawAudioLines(scale: scale, strokeWidth: strokeWidth)
+            NSGraphicsContext.restoreGraphicsState()
 
             return true
         }
         image.isTemplate = false
         return image
+    }
+
+    private static func drawAudioLines(scale: CGFloat, strokeWidth: CGFloat) {
+        for line in Self.audioLineSegments {
+            let path = NSBezierPath()
+            path.lineWidth = strokeWidth
+            path.lineCapStyle = .round
+            path.lineJoinStyle = .round
+            path.move(to: NSPoint(x: line.x * scale, y: (24 - line.y1) * scale))
+            path.line(to: NSPoint(x: line.x * scale, y: (24 - line.y2) * scale))
+            path.stroke()
+        }
     }
 
     private func buildMenu() {
@@ -131,13 +111,24 @@ final class StatusBarController: NSObject, ObservableObject {
         case .idle:
             statusText = "WhisperDB — Ready"
         case .recording:
-            statusText = "WhisperDB — Recording..."
+            statusText = "WhisperDB — Listening..."
         case .processing:
-            statusText = "WhisperDB — Transcribing..."
+            statusText = "WhisperDB — Processing..."
         }
         let statusItem = NSMenuItem(title: statusText, action: nil, keyEquivalent: "")
         statusItem.isEnabled = false
         menu.addItem(statusItem)
+
+        if
+            let elapsedTime = transcriptionManager.recordingElapsedTime,
+            elapsedTime >= transcriptionManager.recordingTimerVisibleAfter
+        {
+            let cappedElapsedTime = min(elapsedTime, transcriptionManager.maxRecordingDuration)
+            let timerText = "Recording: \(formatDuration(cappedElapsedTime)) / \(formatDuration(transcriptionManager.maxRecordingDuration))"
+            let timerItem = NSMenuItem(title: timerText, action: nil, keyEquivalent: "")
+            timerItem.isEnabled = false
+            menu.addItem(timerItem)
+        }
 
         // Error display
         if let error = transcriptionManager.lastError {
@@ -204,6 +195,13 @@ final class StatusBarController: NSObject, ObservableObject {
         menu.addItem(quitItem)
 
         self.statusItem.menu = menu
+    }
+
+    private func formatDuration(_ duration: TimeInterval) -> String {
+        let totalSeconds = max(0, Int(duration.rounded(.down)))
+        let minutes = totalSeconds / 60
+        let seconds = totalSeconds % 60
+        return String(format: "%02d:%02d", minutes, seconds)
     }
 
     @objc private func copyHistoryItem(_ sender: NSMenuItem) {

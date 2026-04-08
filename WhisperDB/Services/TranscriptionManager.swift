@@ -1,3 +1,4 @@
+import AppKit
 import Foundation
 import SwiftUI
 
@@ -18,7 +19,18 @@ final class TranscriptionManager: ObservableObject {
 
     let hotKeyManager = HotKeyManager()
 
+    let recordingTimerVisibleAfter: TimeInterval = 5 * 60
+    let maxRecordingDuration: TimeInterval = 15 * 60
+
     private let maxHistoryItems = 20
+    private let recordingLimitErrorMessage = "Recording stopped at 15 minutes to prevent accidental over-recording."
+    private var recordingStartedAt: Date?
+    private var recordingLimitTask: Task<Void, Never>?
+
+    var recordingElapsedTime: TimeInterval? {
+        guard state == .recording, let recordingStartedAt else { return nil }
+        return Date().timeIntervalSince(recordingStartedAt)
+    }
 
     init() {
         do {
@@ -55,7 +67,7 @@ final class TranscriptionManager: ObservableObject {
         case .recording:
             stopAndTranscribe()
         case .processing:
-            break // Ignore while processing
+            NSSound.beep()
         }
     }
 
@@ -63,18 +75,27 @@ final class TranscriptionManager: ObservableObject {
         lastError = nil
         do {
             try recorder.startRecording()
+            recordingStartedAt = Date()
             state = .recording
             hotKeyManager.setRecording(true)
+            scheduleRecordingLimitTask()
         } catch {
+            recordingStartedAt = nil
+            cancelRecordingLimitTask()
             lastError = "Failed to start recording: \(error.localizedDescription)"
         }
     }
 
-    private func stopAndTranscribe() {
+    private func stopAndTranscribe(preservedError: String? = nil) {
         hotKeyManager.setRecording(false)
+        recordingStartedAt = nil
+        cancelRecordingLimitTask()
+        if let preservedError {
+            lastError = preservedError
+        }
 
         guard let audioURL = recorder.stopRecording() else {
-            lastError = "No audio recorded"
+            lastError = preservedError ?? "No audio recorded"
             state = .idle
             return
         }
@@ -94,9 +115,12 @@ final class TranscriptionManager: ObservableObject {
                 let text = try await service.transcribe(audioURL: audioURL)
                 ClipboardService.copy(text)
 
-                // Brief delay then auto-paste into focused field
-                try? await Task.sleep(nanoseconds: 100_000_000)
-                ClipboardService.paste()
+                // Brief delay then paste into focused field
+                try? await Task.sleep(nanoseconds: 200_000_000)
+                let didPaste = ClipboardService.paste()
+                if !didPaste {
+                    lastError = "Auto-paste failed - text copied to clipboard. Use Cmd+V to paste."
+                }
 
                 let transcription = Transcription(text: text, timestamp: Date())
                 history.insert(transcription, at: 0)
@@ -104,7 +128,7 @@ final class TranscriptionManager: ObservableObject {
                     history = Array(history.prefix(maxHistoryItems))
                 }
 
-                lastError = nil
+                lastError = didPaste ? preservedError : lastError
             } catch {
                 lastError = error.localizedDescription
             }
@@ -119,5 +143,31 @@ final class TranscriptionManager: ObservableObject {
 
     func clearHistory() {
         history.removeAll()
+    }
+
+    private func scheduleRecordingLimitTask() {
+        cancelRecordingLimitTask()
+
+        let limitNanoseconds = UInt64(maxRecordingDuration * 1_000_000_000)
+        recordingLimitTask = Task { [weak self] in
+            try? await Task.sleep(nanoseconds: limitNanoseconds)
+            guard !Task.isCancelled else { return }
+            self?.stopBecauseRecordingLimitReached()
+        }
+    }
+
+    private func cancelRecordingLimitTask() {
+        recordingLimitTask?.cancel()
+        recordingLimitTask = nil
+    }
+
+    private func stopBecauseRecordingLimitReached() {
+        guard state == .recording else { return }
+        NSSound.beep()
+        stopAndTranscribe(preservedError: recordingLimitErrorMessage)
+    }
+
+    deinit {
+        recordingLimitTask?.cancel()
     }
 }

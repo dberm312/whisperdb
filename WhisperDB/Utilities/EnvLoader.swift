@@ -6,6 +6,8 @@ enum EnvLoader {
         let candidates = [
             FileManager.default.currentDirectoryPath + "/.env",
             Bundle.main.bundlePath + "/../.env",
+            Bundle.main.bundleURL.appendingPathComponent("Contents/Resources/.env").path,
+            (Bundle.main.resourcePath ?? "") + "/.env",
         ]
 
         for path in candidates {
