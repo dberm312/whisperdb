@@ -5,7 +5,7 @@ import SwiftUI
 final class HistoryWindowController: NSObject, NSWindowDelegate {
     static let shared = HistoryWindowController()
 
-    private var window: NSWindow?
+    private(set) var window: NSWindow?
 
     func openWindow(with manager: TranscriptionManager) {
         // If window already exists, just bring it to front

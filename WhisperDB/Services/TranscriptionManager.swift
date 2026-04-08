@@ -107,6 +107,8 @@ final class TranscriptionManager: ObservableObject {
 
         state = .processing
 
+        let previousApp = NSWorkspace.shared.frontmostApplication
+
         Task {
             defer {
                 recorder.cleanup()
@@ -123,8 +125,12 @@ final class TranscriptionManager: ObservableObject {
                 let text = try await service.transcribe(audioURL: audioURL)
                 ClipboardService.copy(text)
 
-                // Brief delay then paste into focused field
-                try? await Task.sleep(nanoseconds: 200_000_000)
+                if let app = previousApp {
+                    app.activate(options: [])
+                }
+
+                // Give macOS time to activate the app + propagate clipboard contents
+                try? await Task.sleep(nanoseconds: 400_000_000)
                 let didPaste = ClipboardService.paste()
                 if !didPaste {
                     lastError = "Auto-paste failed - text copied to clipboard. Use Cmd+V to paste."
