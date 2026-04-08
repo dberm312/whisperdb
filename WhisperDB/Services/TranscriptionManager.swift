@@ -16,10 +16,10 @@ final class TranscriptionManager: ObservableObject {
 
     let recorder = AudioRecorder()
     private var groqService: GroqService?
+    private let mediaPlaybackController = MediaPlaybackController()
 
     let hotKeyManager = HotKeyManager()
 
-    let recordingTimerVisibleAfter: TimeInterval = 5 * 60
     let maxRecordingDuration: TimeInterval = 15 * 60
 
     private let maxHistoryItems = 20
@@ -75,6 +75,7 @@ final class TranscriptionManager: ObservableObject {
         lastError = nil
         do {
             try recorder.startRecording()
+            mediaPlaybackController.handleRecordingDidStart()
             recordingStartedAt = Date()
             state = .recording
             hotKeyManager.setRecording(true)
@@ -94,8 +95,11 @@ final class TranscriptionManager: ObservableObject {
             lastError = preservedError
         }
 
-        guard let audioURL = recorder.stopRecording() else {
+        let audioURL = recorder.stopRecording()
+
+        guard let audioURL else {
             lastError = preservedError ?? "No audio recorded"
+            mediaPlaybackController.handleRecordingDidStop()
             state = .idle
             return
         }
@@ -103,11 +107,14 @@ final class TranscriptionManager: ObservableObject {
         state = .processing
 
         Task {
-            defer { recorder.cleanup() }
+            defer {
+                recorder.cleanup()
+                mediaPlaybackController.handleRecordingDidStop()
+                state = .idle
+            }
 
             guard let service = groqService else {
                 lastError = "Groq API not configured"
-                state = .idle
                 return
             }
 
@@ -132,13 +139,16 @@ final class TranscriptionManager: ObservableObject {
             } catch {
                 lastError = error.localizedDescription
             }
-
-            state = .idle
         }
     }
 
     func copyFromHistory(_ transcription: Transcription) {
         ClipboardService.copy(transcription.text)
+    }
+
+    func deleteFromHistory(at index: Int) {
+        guard index < history.count else { return }
+        history.remove(at: index)
     }
 
     func clearHistory() {

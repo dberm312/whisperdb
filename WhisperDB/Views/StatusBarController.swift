@@ -5,8 +5,9 @@ import SwiftUI
 final class StatusBarController: NSObject, ObservableObject {
     private var statusItem: NSStatusItem!
     private var transcriptionManager: TranscriptionManager!
-    private var stateObservation: NSKeyValueObservation?
-    private var cancellables: [Any] = []
+    private var previousIconState: RecordingState?
+    private var previousAudioLevel: Float = 0
+    private var previousMenuSnapshot: (RecordingState, String?, Int, TimeInterval?) = (.idle, nil, 0, nil)
     private static let audioLineSegments: [(x: CGFloat, y1: CGFloat, y2: CGFloat)] = [
         (2, 10, 13),
         (6, 6, 17),
@@ -28,8 +29,10 @@ final class StatusBarController: NSObject, ObservableObject {
         Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
             guard let self = self else { return }
             Task { @MainActor in
-                self.updateIcon(for: self.transcriptionManager.state, audioLevel: self.transcriptionManager.recorder.audioLevel)
-                self.buildMenu()
+                let state = self.transcriptionManager.state
+                let audioLevel = self.transcriptionManager.recorder.audioLevel
+                self.updateIcon(for: state, audioLevel: audioLevel)
+                self.rebuildMenuIfNeeded()
             }
         }
     }
@@ -40,8 +43,12 @@ final class StatusBarController: NSObject, ObservableObject {
         switch state {
         case .idle:
             button.image = makeAudioLinesIcon(size: 18, strokeWidth: 1.5, color: .controlTextColor, isTemplate: true)
+            button.title = ""
         case .recording:
             button.image = makeListeningIcon(size: 18, strokeWidth: 1.7, audioLevel: audioLevel)
+            if let elapsed = transcriptionManager.recordingElapsedTime {
+                button.title = " \(formatDuration(elapsed))"
+            }
         case .processing:
             button.image = makeAudioLinesIcon(
                 size: 18,
@@ -49,6 +56,7 @@ final class StatusBarController: NSObject, ObservableObject {
                 color: NSColor(calibratedWhite: 0.74, alpha: 1),
                 isTemplate: false
             )
+            button.title = ""
         }
     }
 
@@ -64,30 +72,10 @@ final class StatusBarController: NSObject, ObservableObject {
     }
 
     private func makeListeningIcon(size: CGFloat, strokeWidth: CGFloat, audioLevel: Float) -> NSImage {
-        let image = NSImage(size: NSSize(width: size, height: size), flipped: false) { rect in
-            let scale = size / 24.0
-            let level = min(max(CGFloat(audioLevel), 0), 1)
-            let opacity = 0.78 + 0.22 * level
-            let inset = 0.25 * scale
-            let backgroundRect = rect.insetBy(dx: inset, dy: inset)
-            let backgroundPath = NSBezierPath(
-                roundedRect: backgroundRect,
-                xRadius: 4 * scale,
-                yRadius: 4 * scale
-            )
-            NSColor.systemRed.withAlphaComponent(opacity).setFill()
-            backgroundPath.fill()
-
-            NSGraphicsContext.saveGraphicsState()
-            NSGraphicsContext.current?.compositingOperation = .clear
-            NSColor.clear.setStroke()
-            Self.drawAudioLines(scale: scale, strokeWidth: strokeWidth)
-            NSGraphicsContext.restoreGraphicsState()
-
-            return true
-        }
-        image.isTemplate = false
-        return image
+        let level = min(max(CGFloat(audioLevel), 0), 1)
+        let opacity = 0.78 + 0.22 * level
+        let color = NSColor.systemRed.withAlphaComponent(opacity)
+        return makeAudioLinesIcon(size: size, strokeWidth: strokeWidth, color: color, isTemplate: false)
     }
 
     private static func drawAudioLines(scale: CGFloat, strokeWidth: CGFloat) {
@@ -100,6 +88,23 @@ final class StatusBarController: NSObject, ObservableObject {
             path.line(to: NSPoint(x: line.x * scale, y: (24 - line.y2) * scale))
             path.stroke()
         }
+    }
+
+    private func rebuildMenuIfNeeded() {
+        let currentSnapshot = (
+            transcriptionManager.state,
+            transcriptionManager.lastError,
+            transcriptionManager.history.count,
+            transcriptionManager.recordingElapsedTime
+        )
+        let prev = previousMenuSnapshot
+        let changed = currentSnapshot.0 != prev.0
+            || currentSnapshot.1 != prev.1
+            || currentSnapshot.2 != prev.2
+            || Int(currentSnapshot.3 ?? -1) != Int(prev.3 ?? -1)
+        guard changed else { return }
+        previousMenuSnapshot = currentSnapshot
+        buildMenu()
     }
 
     private func buildMenu() {
@@ -119,10 +124,7 @@ final class StatusBarController: NSObject, ObservableObject {
         statusItem.isEnabled = false
         menu.addItem(statusItem)
 
-        if
-            let elapsedTime = transcriptionManager.recordingElapsedTime,
-            elapsedTime >= transcriptionManager.recordingTimerVisibleAfter
-        {
+        if let elapsedTime = transcriptionManager.recordingElapsedTime {
             let cappedElapsedTime = min(elapsedTime, transcriptionManager.maxRecordingDuration)
             let timerText = "Recording: \(formatDuration(cappedElapsedTime)) / \(formatDuration(transcriptionManager.maxRecordingDuration))"
             let timerItem = NSMenuItem(title: timerText, action: nil, keyEquivalent: "")
@@ -176,6 +178,13 @@ final class StatusBarController: NSObject, ObservableObject {
                 organizeItem.tag = index
                 submenu.addItem(organizeItem)
 
+                submenu.addItem(NSMenuItem.separator())
+
+                let deleteItem = NSMenuItem(title: "Delete", action: #selector(deleteHistoryItem(_:)), keyEquivalent: "")
+                deleteItem.target = self
+                deleteItem.tag = index
+                submenu.addItem(deleteItem)
+
                 item.submenu = submenu
                 menu.addItem(item)
             }
@@ -214,6 +223,12 @@ final class StatusBarController: NSObject, ObservableObject {
         let index = sender.tag
         guard index < transcriptionManager.history.count else { return }
         OrganizeWindowController.shared.openWindow(for: transcriptionManager.history[index])
+    }
+
+    @objc private func deleteHistoryItem(_ sender: NSMenuItem) {
+        let index = sender.tag
+        guard index < transcriptionManager.history.count else { return }
+        transcriptionManager.deleteFromHistory(at: index)
     }
 
     @objc private func clearHistory() {

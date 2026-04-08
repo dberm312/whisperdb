@@ -1,5 +1,4 @@
 import AppKit
-import SwiftUI
 
 @main
 struct WhisperDBApp {
