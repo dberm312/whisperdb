@@ -1,0 +1,446 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 60;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		A1000001 /* WhisperDBiOSApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000001 /* WhisperDBiOSApp.swift */; };
+		A1000002 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000002 /* ContentView.swift */; };
+		A1000003 /* RecordingViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000003 /* RecordingViewModel.swift */; };
+		A1000004 /* AudioRecorderIOS.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000004 /* AudioRecorderIOS.swift */; };
+		A1000005 /* Config.plist in Resources */ = {isa = PBXBuildFile; fileRef = A2000005 /* Config.plist */; };
+		A1000006 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A2000006 /* Assets.xcassets */; };
+		A1000010 /* WhisperDBKit in Frameworks */ = {isa = PBXBuildFile; productRef = A5000001 /* WhisperDBKit */; };
+		A1000020 /* OrganizeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000020 /* OrganizeView.swift */; };
+		A1000021 /* OrganizeViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000021 /* OrganizeViewModel.swift */; };
+		A1000022 /* RecordingAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000022 /* RecordingAttributes.swift */; };
+		A1000030 /* RecordingActivityWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000030 /* RecordingActivityWidget.swift */; };
+		A1000031 /* RecordingActivityWidgetBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000031 /* RecordingActivityWidgetBundle.swift */; };
+		A1000032 /* RecordingAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000022 /* RecordingAttributes.swift */; };
+		A1000040 /* RecordingActivityWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = A2000040 /* RecordingActivityWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		A2000001 /* WhisperDBiOSApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhisperDBiOSApp.swift; sourceTree = "<group>"; };
+		A2000002 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		A2000003 /* RecordingViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingViewModel.swift; sourceTree = "<group>"; };
+		A2000004 /* AudioRecorderIOS.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioRecorderIOS.swift; sourceTree = "<group>"; };
+		A2000005 /* Config.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Config.plist; sourceTree = "<group>"; };
+		A2000006 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		A2000007 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		A2000010 /* WhisperDBiOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WhisperDBiOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A2000020 /* OrganizeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrganizeView.swift; sourceTree = "<group>"; };
+		A2000021 /* OrganizeViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrganizeViewModel.swift; sourceTree = "<group>"; };
+		A2000022 /* RecordingAttributes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingAttributes.swift; sourceTree = "<group>"; };
+		A2000030 /* RecordingActivityWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingActivityWidget.swift; sourceTree = "<group>"; };
+		A2000031 /* RecordingActivityWidgetBundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingActivityWidgetBundle.swift; sourceTree = "<group>"; };
+		A2000032 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		A2000040 /* RecordingActivityWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = RecordingActivityWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		A3000001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A1000010 /* WhisperDBKit in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A3000003 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXResourcesBuildPhase section */
+		A3000002 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A1000005 /* Config.plist in Resources */,
+				A1000006 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXGroup section */
+		A4000001 = {
+			isa = PBXGroup;
+			children = (
+				A4000002 /* WhisperDBiOS */,
+				A4000004 /* RecordingActivityWidget */,
+				A4000003 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		A4000002 /* WhisperDBiOS */ = {
+			isa = PBXGroup;
+			children = (
+				A2000001 /* WhisperDBiOSApp.swift */,
+				A2000002 /* ContentView.swift */,
+				A2000003 /* RecordingViewModel.swift */,
+				A2000004 /* AudioRecorderIOS.swift */,
+				A2000020 /* OrganizeView.swift */,
+				A2000021 /* OrganizeViewModel.swift */,
+				A2000022 /* RecordingAttributes.swift */,
+				A2000005 /* Config.plist */,
+				A2000007 /* Info.plist */,
+				A2000006 /* Assets.xcassets */,
+			);
+			path = WhisperDBiOS;
+			sourceTree = "<group>";
+		};
+		A4000003 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				A2000010 /* WhisperDBiOS.app */,
+				A2000040 /* RecordingActivityWidgetExtension.appex */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		A4000004 /* RecordingActivityWidget */ = {
+			isa = PBXGroup;
+			children = (
+				A2000030 /* RecordingActivityWidget.swift */,
+				A2000031 /* RecordingActivityWidgetBundle.swift */,
+				A2000032 /* Info.plist */,
+			);
+			path = RecordingActivityWidget;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		A3000010 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				A1000040 /* RecordingActivityWidgetExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		A6000010 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A6000002 /* RecordingActivityWidgetExtension */;
+			targetProxy = A6000011 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin PBXContainerItemProxy section */
+		A6000011 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A9000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A6000002;
+			remoteInfo = RecordingActivityWidgetExtension;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXNativeTarget section */
+		A6000001 /* WhisperDBiOS */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A8000003 /* Build configuration list for PBXNativeTarget "WhisperDBiOS" */;
+			buildPhases = (
+				A7000001 /* Sources */,
+				A3000001 /* Frameworks */,
+				A3000002 /* Resources */,
+				A3000010 /* Embed Foundation Extensions */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				A6000010 /* PBXTargetDependency */,
+			);
+			name = WhisperDBiOS;
+			packageProductDependencies = (
+				A5000001 /* WhisperDBKit */,
+			);
+			productName = WhisperDBiOS;
+			productReference = A2000010 /* WhisperDBiOS.app */;
+			productType = "com.apple.product-type.application";
+		};
+		A6000002 /* RecordingActivityWidgetExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A8000005 /* Build configuration list for PBXNativeTarget "RecordingActivityWidgetExtension" */;
+			buildPhases = (
+				A7000002 /* Sources */,
+				A3000003 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = RecordingActivityWidgetExtension;
+			productName = RecordingActivityWidgetExtension;
+			productReference = A2000040 /* RecordingActivityWidgetExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		A9000001 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1540;
+				LastUpgradeCheck = 1540;
+			};
+			buildConfigurationList = A8000001 /* Build configuration list for PBXProject "WhisperDBiOS" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = A4000001;
+			packageReferences = (
+				A5000010 /* XCLocalSwiftPackageReference ".." */,
+			);
+			productRefGroup = A4000003 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				A6000001 /* WhisperDBiOS */,
+				A6000002 /* RecordingActivityWidgetExtension */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		A7000001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A1000001 /* WhisperDBiOSApp.swift in Sources */,
+				A1000002 /* ContentView.swift in Sources */,
+				A1000003 /* RecordingViewModel.swift in Sources */,
+				A1000004 /* AudioRecorderIOS.swift in Sources */,
+				A1000020 /* OrganizeView.swift in Sources */,
+				A1000021 /* OrganizeViewModel.swift in Sources */,
+				A1000022 /* RecordingAttributes.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A7000002 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A1000030 /* RecordingActivityWidget.swift in Sources */,
+				A1000031 /* RecordingActivityWidgetBundle.swift in Sources */,
+				A1000032 /* RecordingAttributes.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		A8000010 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				IPHONEOS_DEPLOYMENT_TARGET = 16.1;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		A8000011 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.1;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		A8000020 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 84C2426LUH;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = WhisperDBiOS/Info.plist;
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "WhisperDB needs microphone access to transcribe your speech.";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.1;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.whisperdb.ios;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		A8000021 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 84C2426LUH;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = WhisperDBiOS/Info.plist;
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "WhisperDB needs microphone access to transcribe your speech.";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.1;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.whisperdb.ios;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		A8000030 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 84C2426LUH;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = RecordingActivityWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = RecordingActivityWidget;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.2;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.whisperdb.ios.RecordingActivityWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		A8000031 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 84C2426LUH;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = RecordingActivityWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = RecordingActivityWidget;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.2;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.whisperdb.ios.RecordingActivityWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		A8000001 /* Build configuration list for PBXProject "WhisperDBiOS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A8000010 /* Debug */,
+				A8000011 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A8000003 /* Build configuration list for PBXNativeTarget "WhisperDBiOS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A8000020 /* Debug */,
+				A8000021 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A8000005 /* Build configuration list for PBXNativeTarget "RecordingActivityWidgetExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A8000030 /* Debug */,
+				A8000031 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		A5000010 /* XCLocalSwiftPackageReference ".." */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = ..;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		A5000001 /* WhisperDBKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = WhisperDBKit;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = A9000001 /* Project object */;
+}

@@ -1,5 +1,6 @@
 import AppKit
 import SwiftUI
+import WhisperDBKit
 
 @MainActor
 final class OrganizeWindowController: NSObject, NSWindowDelegate {

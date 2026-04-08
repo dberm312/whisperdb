@@ -1,4 +1,5 @@
 import SwiftUI
+import WhisperDBKit
 
 struct HistoryView: View {
     @ObservedObject var manager: TranscriptionManager

@@ -4,14 +4,17 @@ import WhisperDBKit
 
 @MainActor
 final class OrganizeViewModel: ObservableObject {
-    let transcription: Transcription
+    let originalText: String
 
     @Published var organizedText: String = ""
     @Published var isLoading: Bool = false
     @Published var error: String?
+    @Published var copied = false
 
-    init(transcription: Transcription) {
-        self.transcription = transcription
+    private var organizeTask: Task<Void, Never>?
+
+    init(text: String) {
+        self.originalText = text
     }
 
     func startOrganizing() {
@@ -20,10 +23,10 @@ final class OrganizeViewModel: ObservableObject {
         error = nil
         organizedText = ""
 
-        Task {
+        organizeTask = Task {
             do {
                 let service = try OpenRouterService()
-                let stream = service.organize(text: transcription.text)
+                let stream = service.organize(text: originalText)
 
                 for try await chunk in stream {
                     organizedText += chunk
@@ -36,7 +39,17 @@ final class OrganizeViewModel: ObservableObject {
         }
     }
 
+    func cancelOrganizing() {
+        organizeTask?.cancel()
+        organizeTask = nil
+    }
+
     func copyToClipboard() {
-        ClipboardService.copy(organizedText)
+        UIPasteboard.general.string = organizedText
+        copied = true
+        Task {
+            try? await Task.sleep(nanoseconds: 1_500_000_000)
+            copied = false
+        }
     }
 }

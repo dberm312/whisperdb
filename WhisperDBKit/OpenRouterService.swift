@@ -1,6 +1,6 @@
 import Foundation
 
-final class OpenRouterService {
+public final class OpenRouterService {
     private let apiKey: String
     private let baseURL = "https://openrouter.ai/api/v1/chat/completions"
     private let model = "anthropic/claude-opus-4"
@@ -13,14 +13,14 @@ final class OpenRouterService {
         Do not add information that wasn't in the original. Output only the organized markdown.
         """
 
-    init() throws {
+    public init() throws {
         guard let key = EnvLoader.get("OPENROUTER_API_KEY"), !key.isEmpty else {
             throw OpenRouterError.missingAPIKey
         }
         self.apiKey = key
     }
 
-    func organize(text: String) -> AsyncThrowingStream<String, Error> {
+    public func organize(text: String) -> AsyncThrowingStream<String, Error> {
         AsyncThrowingStream { continuation in
             Task {
                 do {
@@ -83,12 +83,12 @@ final class OpenRouterService {
         return request
     }
 
-    enum OpenRouterError: LocalizedError {
+    public enum OpenRouterError: LocalizedError {
         case missingAPIKey
         case invalidResponse
         case apiError(statusCode: Int, message: String)
 
-        var errorDescription: String? {
+        public var errorDescription: String? {
             switch self {
             case .missingAPIKey:
                 return "OPENROUTER_API_KEY not found. Add it to your .env file"

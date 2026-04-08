@@ -1,11 +1,16 @@
 import Foundation
 
-struct Transcription: Identifiable {
-    let id = UUID()
-    let text: String
-    let timestamp: Date
+public struct Transcription: Identifiable {
+    public let id = UUID()
+    public let text: String
+    public let timestamp: Date
 
-    var displayText: String {
+    public init(text: String, timestamp: Date) {
+        self.text = text
+        self.timestamp = timestamp
+    }
+
+    public var displayText: String {
         let maxLength = 80
         if text.count > maxLength {
             return String(text.prefix(maxLength)) + "…"
@@ -13,7 +18,7 @@ struct Transcription: Identifiable {
         return text
     }
 
-    var timeAgo: String {
+    public var timeAgo: String {
         let formatter = RelativeDateTimeFormatter()
         formatter.unitsStyle = .abbreviated
         return formatter.localizedString(for: timestamp, relativeTo: Date())
