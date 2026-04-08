@@ -125,6 +125,12 @@ struct HistoryRow: View {
                             .font(.caption)
                     }
                     .buttonStyle(.borderless)
+
+                    ShareLink(item: item.text) {
+                        Label("Share", systemImage: "square.and.arrow.up")
+                            .font(.caption)
+                    }
+                    .buttonStyle(.borderless)
                 }
             }
         }

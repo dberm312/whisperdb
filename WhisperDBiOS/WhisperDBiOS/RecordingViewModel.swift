@@ -79,10 +79,30 @@ final class RecordingViewModel: ObservableObject {
                     return
                 }
 
-                try recorder.startRecording()
+                // Retry up to 3 times — first attempt after permission grant can fail
+                // due to audio session not being fully initialized yet
+                var lastError: Error?
+                for attempt in 0..<3 {
+                    do {
+                        if attempt > 0 {
+                            try await Task.sleep(nanoseconds: 200_000_000) // 200ms between retries
+                        }
+                        try recorder.startRecording()
+                        lastError = nil
+                        break
+                    } catch {
+                        lastError = error
+                        recorder.stopRecording()
+                    }
+                }
+
+                if let lastError {
+                    self.error = "Failed to start recording: \(lastError.localizedDescription)"
+                    return
+                }
 
                 // Verify audio engine is actually producing data
-                try await Task.sleep(nanoseconds: 300_000_000) // 300ms warm-up
+                try await Task.sleep(nanoseconds: 200_000_000) // 200ms warm-up
                 guard recorder.isEngineRunning else {
                     recorder.stopRecording()
                     error = "Audio engine failed to start. Please try again."
@@ -94,6 +114,9 @@ final class RecordingViewModel: ObservableObject {
                 lastReportedSeconds = -1
                 scheduleRecordingLimitTask()
                 startLiveActivity()
+
+                // Haptic feedback to confirm recording started
+                UIImpactFeedbackGenerator(style: .medium).impactOccurred()
 
                 // Poll audio level and elapsed time
                 while isRecording {

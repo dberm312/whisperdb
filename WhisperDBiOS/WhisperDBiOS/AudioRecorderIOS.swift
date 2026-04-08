@@ -13,13 +13,26 @@ final class AudioRecorderIOS {
     }
 
     func startRecording() throws {
+        // Tear down any previous engine state to avoid stale taps
+        if let existingEngine = audioEngine {
+            existingEngine.inputNode.removeTap(onBus: 0)
+            existingEngine.stop()
+            audioEngine = nil
+        }
+
         let session = AVAudioSession.sharedInstance()
         try session.setCategory(.playAndRecord, mode: .default, options: [.defaultToSpeaker, .allowBluetooth])
         try session.setActive(true)
 
+        // Create engine after audio session is active so inputNode format is valid
         let engine = AVAudioEngine()
         let inputNode = engine.inputNode
         let recordingFormat = inputNode.outputFormat(forBus: 0)
+
+        // Guard against zero-sample-rate format (happens on first launch after permission grant)
+        guard recordingFormat.sampleRate > 0 else {
+            throw RecordingError.invalidAudioFormat
+        }
 
         let tempDir = FileManager.default.temporaryDirectory
         let url = tempDir.appendingPathComponent("whisperdb_\(UUID().uuidString).m4a")
@@ -52,6 +65,17 @@ final class AudioRecorderIOS {
         engine.prepare()
         try engine.start()
         audioEngine = engine
+    }
+
+    enum RecordingError: LocalizedError {
+        case invalidAudioFormat
+
+        var errorDescription: String? {
+            switch self {
+            case .invalidAudioFormat:
+                return "Audio input not ready. Please try again."
+            }
+        }
     }
 
     @discardableResult
