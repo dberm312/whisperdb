@@ -1,10 +1,12 @@
 import AppKit
+import Combine
 import SwiftUI
 
 @MainActor
 final class StatusBarController: NSObject, ObservableObject {
     private var statusItem: NSStatusItem!
     private var transcriptionManager: TranscriptionManager!
+    private var cancellables = Set<AnyCancellable>()
     private var previousIconState: RecordingState?
     private var previousAudioLevel: Float = 0
     private var previousMenuSnapshot: (RecordingState, String?, Int, TimeInterval?) = (.idle, nil, 0, nil)
@@ -24,17 +26,14 @@ final class StatusBarController: NSObject, ObservableObject {
         updateIcon(for: .idle, audioLevel: 0)
         buildMenu()
 
-        // Observe state changes to update icon
-        // Using a timer to poll state since @Published doesn't easily bridge to NSStatusItem
-        Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
-            guard let self = self else { return }
-            Task { @MainActor in
-                let state = self.transcriptionManager.state
-                let audioLevel = self.transcriptionManager.recorder.audioLevel
-                self.updateIcon(for: state, audioLevel: audioLevel)
-                self.rebuildMenuIfNeeded()
+        transcriptionManager.$state
+            .combineLatest(transcriptionManager.recorder.$audioLevel)
+            .receive(on: RunLoop.main)
+            .sink { [weak self] state, audioLevel in
+                self?.updateIcon(for: state, audioLevel: audioLevel)
+                self?.rebuildMenuIfNeeded()
             }
-        }
+            .store(in: &cancellables)
     }
 
     private func updateIcon(for state: RecordingState, audioLevel: Float) {

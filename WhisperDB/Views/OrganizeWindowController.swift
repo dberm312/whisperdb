@@ -37,7 +37,9 @@ final class OrganizeWindowController: NSObject, NSWindowDelegate {
         openWindows.removeAll { $0 === closingWindow }
 
         if openWindows.isEmpty {
-            NSApp.setActivationPolicy(.accessory)
+            if HistoryWindowController.shared.window == nil {
+                NSApp.setActivationPolicy(.accessory)
+            }
         }
     }
 }

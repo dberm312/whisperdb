@@ -47,7 +47,7 @@ WhisperDB is split into three targets:
 
 1. Clone the repo:
    ```sh
-   git clone https://github.com/your-username/whisper-db.git
+   git clone https://github.com/dberm312/whisperdb.git
    cd whisper-db
    ```
 

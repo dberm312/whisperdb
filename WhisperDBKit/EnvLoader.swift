@@ -1,14 +1,23 @@
 import Foundation
 
 public enum EnvLoader {
+    private static var cached: [String: String]?
+
     public static func load() -> [String: String] {
+        if let cached {
+            return cached
+        }
+
         // On macOS: look for .env file in standard locations
         // On iOS: look for Config.plist in the app bundle
+        let result: [String: String]
         #if os(iOS)
-        return loadFromPlist()
+        result = loadFromPlist()
         #else
-        return loadFromEnvFile()
+        result = loadFromEnvFile()
         #endif
+        cached = result
+        return result
     }
 
     public static func get(_ key: String) -> String? {

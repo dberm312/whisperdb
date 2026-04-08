@@ -19,7 +19,7 @@ enum ClipboardService {
             return false
         }
 
-        let source = CGEventSource(stateID: .hidSystemState)
+        let source = CGEventSource(stateID: .combinedSessionState)
         guard
             let keyDown = CGEvent(
                 keyboardEventSource: source,
@@ -39,6 +39,7 @@ enum ClipboardService {
         keyDown.flags = .maskCommand
         keyUp.flags = .maskCommand
         keyDown.post(tap: .cghidEventTap)
+        usleep(50_000)
         keyUp.post(tap: .cghidEventTap)
         return true
     }
