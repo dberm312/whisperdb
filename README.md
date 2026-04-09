@@ -15,25 +15,23 @@ WhisperDB is split into three targets:
 ### macOS
 
 - **Instant dictation** — transcribes speech using Whisper (via Groq) and copies the result to your clipboard
-- **Auto-paste** — automatically pastes the transcription into the focused text field
-- **Audio-reactive recording indicator** — pulsing red circle in the menu bar shows when you're recording
-- **Dictation history** — browse and search all your previous transcriptions
+- **Audio-reactive recording indicator** — the menu bar icon turns red and responds to your voice level while recording
+- **Dictation history** — browse, copy, organize, and clear your previous transcriptions
 - **Organize with AI** — restructure raw transcriptions into clean markdown using Claude
-- **Media control** — automatically pauses music/podcasts while recording
 
 ### iOS
 
 - **Tap-to-record** — large mic button to start and stop recording
 - **Audio-reactive animation** — button scales with your voice level
-- **Live transcription display** — selectable text you can copy with one tap
+- **Transcription history** — review previous recordings and expand items for copy, organize, and share actions
 - **Copy feedback** — visual confirmation when transcription is copied to clipboard
 
 ## Keyboard Shortcuts (macOS)
 
 | Shortcut | Action |
 |---|---|
-| `⌥ Space` | Start recording |
-| `⌥` (Option alone) | Stop recording |
+| `⌥ Space` | Start or stop recording |
+| `⌥` (Option alone, while recording) | Stop the current recording |
 | `⇧⌥ Space` | Open dictation history window |
 
 ## Requirements
@@ -105,11 +103,12 @@ Select an iOS simulator or connected device, then build and run with `⌘R`.
 ### macOS
 
 1. WhisperDB lives in your menu bar with a captions icon
-2. Press **⌥ Space** to start recording — the icon turns into a pulsing red circle
+2. Press **⌥ Space** to start recording — the menu bar icon turns red and the timer appears
 3. Speak your dictation
 4. Press **⌥** (Option key) to stop — the audio is sent to Groq's Whisper API
-5. The transcription is copied to your clipboard and auto-pasted into the focused field
-6. Press **⇧⌥ Space** anytime to open a window with your full dictation history
+5. While it processes, the menu bar icon turns gray and shows **Processing…**
+6. The transcription is copied to your clipboard
+7. Press **⇧⌥ Space** anytime to open a window with your full dictation history
 
 ### iOS
 
@@ -122,7 +121,6 @@ Select an iOS simulator or connected device, then build and run with `⌘R`.
 
 ### macOS
 - **Microphone access** — for audio recording
-- **Accessibility** — for auto-paste (simulates ⌘V)
 
 ### iOS
 - **Microphone access** — for audio recording

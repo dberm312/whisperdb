@@ -19,8 +19,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         setupMainMenu()
-        ClipboardService.ensureAccessibilityPermission()
-
         transcriptionManager = TranscriptionManager()
         statusBarController = StatusBarController()
         statusBarController.setup(with: transcriptionManager)

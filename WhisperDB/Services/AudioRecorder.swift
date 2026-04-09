@@ -1,4 +1,5 @@
 import AVFoundation
+import AudioToolbox
 import Foundation
 
 final class AudioRecorder: ObservableObject {
@@ -9,9 +10,15 @@ final class AudioRecorder: ObservableObject {
     private var audioFile: AVAudioFile?
     private(set) var recordingURL: URL?
 
-    func startRecording() throws {
+    func startRecording(selectedDeviceUID: String? = nil) throws {
         let engine = AVAudioEngine()
         let inputNode = engine.inputNode
+
+        if let selectedDeviceUID,
+           let deviceID = CoreAudioInputDevices.deviceID(forUID: selectedDeviceUID) {
+            try setInputDevice(deviceID, on: inputNode)
+        }
+
         let recordingFormat = inputNode.outputFormat(forBus: 0)
 
         // Record as m4a (AAC) — compact and universally supported by Whisper
@@ -64,10 +71,44 @@ final class AudioRecorder: ObservableObject {
         return recordingURL
     }
 
+    private func setInputDevice(_ deviceID: AudioDeviceID, on inputNode: AVAudioInputNode) throws {
+        guard let audioUnit = inputNode.audioUnit else {
+            throw AudioRecorderError.inputDeviceSelectionUnavailable
+        }
+
+        var selectedDeviceID = deviceID
+        let status = AudioUnitSetProperty(
+            audioUnit,
+            kAudioOutputUnitProperty_CurrentDevice,
+            kAudioUnitScope_Global,
+            0,
+            &selectedDeviceID,
+            UInt32(MemoryLayout<AudioDeviceID>.size)
+        )
+
+        guard status == noErr else {
+            throw AudioRecorderError.failedToSelectInputDevice(status: status)
+        }
+    }
+
     func cleanup() {
         if let url = recordingURL {
             try? FileManager.default.removeItem(at: url)
             recordingURL = nil
+        }
+    }
+}
+
+private enum AudioRecorderError: LocalizedError {
+    case inputDeviceSelectionUnavailable
+    case failedToSelectInputDevice(status: OSStatus)
+
+    var errorDescription: String? {
+        switch self {
+        case .inputDeviceSelectionUnavailable:
+            return "Microphone selection is unavailable on this Mac."
+        case let .failedToSelectInputDevice(status):
+            return "Failed to use the selected microphone (\(status))."
         }
     }
 }

@@ -16,8 +16,8 @@ final class TranscriptionManager: ObservableObject {
     @Published var lastError: String?
 
     let recorder = AudioRecorder()
+    let microphoneManager = AudioInputDeviceManager()
     private var groqService: GroqService?
-    private let mediaPlaybackController = MediaPlaybackController()
 
     let hotKeyManager = HotKeyManager()
 
@@ -74,9 +74,10 @@ final class TranscriptionManager: ObservableObject {
 
     private func startRecording() {
         lastError = nil
+        microphoneManager.refreshDevices()
+
         do {
-            try recorder.startRecording()
-            mediaPlaybackController.handleRecordingDidStart()
+            try recorder.startRecording(selectedDeviceUID: microphoneManager.recordingDeviceUID)
             recordingStartedAt = Date()
             state = .recording
             hotKeyManager.setRecording(true)
@@ -100,7 +101,6 @@ final class TranscriptionManager: ObservableObject {
 
         guard let audioURL else {
             lastError = preservedError ?? "No audio recorded"
-            mediaPlaybackController.handleRecordingDidStop()
             state = .idle
             return
         }
@@ -110,7 +110,6 @@ final class TranscriptionManager: ObservableObject {
         Task {
             defer {
                 recorder.cleanup()
-                mediaPlaybackController.handleRecordingDidStop()
                 state = .idle
             }
 
@@ -123,20 +122,13 @@ final class TranscriptionManager: ObservableObject {
                 let text = try await service.transcribe(audioURL: audioURL)
                 ClipboardService.copy(text)
 
-                // Brief delay then paste into focused field
-                try? await Task.sleep(nanoseconds: 200_000_000)
-                let didPaste = ClipboardService.paste()
-                if !didPaste {
-                    lastError = "Auto-paste failed - text copied to clipboard. Use Cmd+V to paste."
-                }
-
                 let transcription = Transcription(text: text, timestamp: Date())
                 history.insert(transcription, at: 0)
                 if history.count > maxHistoryItems {
                     history = Array(history.prefix(maxHistoryItems))
                 }
 
-                lastError = didPaste ? preservedError : lastError
+                lastError = preservedError
             } catch {
                 lastError = error.localizedDescription
             }
