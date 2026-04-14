@@ -6,11 +6,13 @@ final class AudioRecorder: ObservableObject {
     @Published var isRecording = false
     @Published var audioLevel: Float = 0.0
 
+    private var peakAudioLevel: Float = 0.0
     private var audioEngine: AVAudioEngine?
     private var audioFile: AVAudioFile?
     private(set) var recordingURL: URL?
 
     func startRecording(selectedDeviceUID: String? = nil) throws {
+        peakAudioLevel = 0.0
         let engine = AVAudioEngine()
         let inputNode = engine.inputNode
 
@@ -50,6 +52,8 @@ final class AudioRecorder: ObservableObject {
             // Normalize to 0–1 range (clamp, typical speech RMS is 0.01–0.2)
             let normalized = min(max(rms * 5.0, 0.0), 1.0)
 
+            self?.peakAudioLevel = max(self?.peakAudioLevel ?? 0, normalized)
+
             DispatchQueue.main.async {
                 self?.audioLevel = normalized
             }
@@ -61,6 +65,10 @@ final class AudioRecorder: ObservableObject {
         isRecording = true
     }
 
+    func getPeakAudioLevel() -> Float {
+        return peakAudioLevel
+    }
+
     func stopRecording() -> URL? {
         audioEngine?.inputNode.removeTap(onBus: 0)
         audioEngine?.stop()
@@ -68,6 +76,7 @@ final class AudioRecorder: ObservableObject {
         audioFile = nil
         isRecording = false
         audioLevel = 0.0
+        peakAudioLevel = 0.0
         return recordingURL
     }
 

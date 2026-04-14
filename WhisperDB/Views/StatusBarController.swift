@@ -9,6 +9,7 @@ final class StatusBarController: NSObject, ObservableObject, NSMenuDelegate {
     private var previousIconState: RecordingState?
     private var previousAudioLevel: Float = 0
     private var previousMenuSnapshot: (RecordingState, String?, Int, TimeInterval?, String) = (.idle, nil, 0, nil, "")
+    private var animationTick: Int = 0
     private static let audioLineSegments: [(x: CGFloat, y1: CGFloat, y2: CGFloat)] = [
         (2, 10, 13),
         (6, 6, 17),
@@ -17,6 +18,8 @@ final class StatusBarController: NSObject, ObservableObject, NSMenuDelegate {
         (18, 5, 18),
         (22, 10, 13),
     ]
+    // Phase offsets per bar so they don't animate in lockstep
+    private static let barPhaseOffsets: [Double] = [0.0, 1.2, 2.5, 0.8, 1.9, 3.3]
 
     func setup(with manager: TranscriptionManager) {
         self.transcriptionManager = manager
@@ -85,10 +88,45 @@ final class StatusBarController: NSObject, ObservableObject, NSMenuDelegate {
     }
 
     private func makeListeningIcon(size: CGFloat, strokeWidth: CGFloat, audioLevel: Float) -> NSImage {
-        let level = min(max(CGFloat(audioLevel), 0), 1)
-        let opacity = 0.78 + 0.22 * level
-        let color = NSColor.systemRed.withAlphaComponent(opacity)
-        return makeAudioLinesIcon(size: size, strokeWidth: strokeWidth, color: color, isTemplate: false)
+        let level = CGFloat(min(max(audioLevel, 0), 1))
+        let color = NSColor.systemRed
+        let tick = animationTick
+        animationTick += 1
+
+        let image = NSImage(size: NSSize(width: size, height: size), flipped: false) { rect in
+            let scale = size / 24.0
+            color.setStroke()
+
+            for (i, line) in Self.audioLineSegments.enumerated() {
+                let midY = (line.y1 + line.y2) / 2.0
+                let baseHalfHeight = (line.y2 - line.y1) / 2.0
+
+                // Per-bar sine wave creates organic, non-uniform movement
+                let phase = Self.barPhaseOffsets[i]
+                let wave = CGFloat(sin(Double(tick) * 0.6 + phase))
+                // Combine audio level with per-bar wave; wave adds ±variation
+                let variation = 0.3 * wave  // ±30% variation between bars
+                let effectiveLevel = min(max(level + level * variation, 0), 1)
+
+                // Scale from base height up to full 0→24 range based on level
+                let maxHalfHeight: CGFloat = 10.0  // bars can span nearly full icon
+                let halfHeight = baseHalfHeight + (maxHalfHeight - baseHalfHeight) * effectiveLevel
+
+                let y1 = midY - halfHeight
+                let y2 = midY + halfHeight
+
+                let path = NSBezierPath()
+                path.lineWidth = strokeWidth
+                path.lineCapStyle = .round
+                path.lineJoinStyle = .round
+                path.move(to: NSPoint(x: line.x * scale, y: (24 - y1) * scale))
+                path.line(to: NSPoint(x: line.x * scale, y: (24 - y2) * scale))
+                path.stroke()
+            }
+            return true
+        }
+        image.isTemplate = false
+        return image
     }
 
     private static func drawAudioLines(scale: CGFloat, strokeWidth: CGFloat) {

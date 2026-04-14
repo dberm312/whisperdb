@@ -23,6 +23,8 @@ final class TranscriptionManager: ObservableObject {
 
     let maxRecordingDuration: TimeInterval = 15 * 60
 
+    private let minRecordingDuration: TimeInterval = 2.5
+    private let silenceThreshold: Float = 0.01
     private let maxHistoryItems = 20
     private let recordingLimitErrorMessage = "Recording stopped at 15 minutes to prevent accidental over-recording."
     private var recordingStartedAt: Date?
@@ -90,6 +92,14 @@ final class TranscriptionManager: ObservableObject {
     }
 
     private func stopAndTranscribe(preservedError: String? = nil) {
+        let recordingDuration: TimeInterval = if let recordingStartedAt {
+            Date().timeIntervalSince(recordingStartedAt)
+        } else {
+            0
+        }
+
+        let peakLevel = recorder.getPeakAudioLevel()
+
         hotKeyManager.setRecording(false)
         recordingStartedAt = nil
         cancelRecordingLimitTask()
@@ -98,6 +108,21 @@ final class TranscriptionManager: ObservableObject {
         }
 
         let audioURL = recorder.stopRecording()
+
+        if recordingDuration < minRecordingDuration && preservedError == nil {
+            recorder.cleanup()
+            state = .idle
+            return
+        }
+
+        if peakLevel < silenceThreshold && preservedError == nil {
+            lastError = "Nothing was captured — no sound detected"
+            recorder.cleanup()
+            state = .idle
+            return
+        }
+
+        ClipboardService.clear()
 
         guard let audioURL else {
             lastError = preservedError ?? "No audio recorded"

@@ -3,7 +3,7 @@ import Foundation
 public final class OpenRouterService {
     private let apiKey: String
     private let baseURL = "https://openrouter.ai/api/v1/chat/completions"
-    private let model = "anthropic/claude-opus-4"
+    private let model = "anthropic/claude-opus-4-6"
 
     private let systemPrompt = """
         You are an expert at organizing unstructured text. The user will provide a raw voice \
