@@ -5,38 +5,14 @@ import WhisperDBKit
 @MainActor
 final class OrganizeViewModel: ObservableObject {
     let transcription: Transcription
-
-    @Published var organizedText: String = ""
-    @Published var isLoading: Bool = false
-    @Published var error: String?
+    let session: OrganizeSession
 
     init(transcription: Transcription) {
         self.transcription = transcription
-    }
-
-    func startOrganizing() {
-        guard !isLoading else { return }
-        isLoading = true
-        error = nil
-        organizedText = ""
-
-        Task {
-            do {
-                let service = try OpenRouterService()
-                let stream = service.organize(text: transcription.text)
-
-                for try await chunk in stream {
-                    organizedText += chunk
-                }
-            } catch {
-                self.error = error.localizedDescription
-            }
-
-            isLoading = false
-        }
+        self.session = OrganizeSession(originalText: transcription.text)
     }
 
     func copyToClipboard() {
-        ClipboardService.copy(organizedText)
+        ClipboardService.copy(session.currentOutput)
     }
 }
