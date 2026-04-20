@@ -17,7 +17,8 @@ final class AudioRecorder: ObservableObject {
         let inputNode = engine.inputNode
 
         if let selectedDeviceUID,
-           let deviceID = CoreAudioInputDevices.deviceID(forUID: selectedDeviceUID) {
+            let deviceID = CoreAudioInputDevices.deviceID(forUID: selectedDeviceUID)
+        {
             try setInputDevice(deviceID, on: inputNode)
         }
 
@@ -116,7 +117,7 @@ private enum AudioRecorderError: LocalizedError {
         switch self {
         case .inputDeviceSelectionUnavailable:
             return "Microphone selection is unavailable on this Mac."
-        case let .failedToSelectInputDevice(status):
+        case .failedToSelectInputDevice(let status):
             return "Failed to use the selected microphone (\(status))."
         }
     }

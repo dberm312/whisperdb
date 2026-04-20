@@ -47,8 +47,7 @@ public enum EnvLoader {
             if parts.count == 2 {
                 let key = String(parts[0]).trimmingCharacters(in: .whitespaces)
                 var value = String(parts[1]).trimmingCharacters(in: .whitespaces)
-                if (value.hasPrefix("\"") && value.hasSuffix("\"")) ||
-                   (value.hasPrefix("'") && value.hasSuffix("'")) {
+                if (value.hasPrefix("\"") && value.hasSuffix("\"")) || (value.hasPrefix("'") && value.hasSuffix("'")) {
                     value = String(value.dropFirst().dropLast())
                 }
                 result[key] = value
@@ -63,8 +62,9 @@ public enum EnvLoader {
     #if os(iOS)
     private static func loadFromPlist() -> [String: String] {
         guard let url = Bundle.main.url(forResource: "Config", withExtension: "plist"),
-              let data = try? Data(contentsOf: url),
-              let dict = try? PropertyListSerialization.propertyList(from: data, format: nil) as? [String: String] else {
+            let data = try? Data(contentsOf: url),
+            let dict = try? PropertyListSerialization.propertyList(from: data, format: nil) as? [String: String]
+        else {
             return [:]
         }
         return dict

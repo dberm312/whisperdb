@@ -5,10 +5,10 @@ let package = Package(
     name: "WhisperDB",
     platforms: [.macOS(.v13), .iOS(.v16)],
     products: [
-        .library(name: "WhisperDBKit", targets: ["WhisperDBKit"]),
+        .library(name: "WhisperDBKit", targets: ["WhisperDBKit"])
     ],
     dependencies: [
-        .package(url: "https://github.com/soffes/HotKey.git", from: "0.2.0"),
+        .package(url: "https://github.com/soffes/HotKey.git", from: "0.2.0")
     ],
     targets: [
         .target(

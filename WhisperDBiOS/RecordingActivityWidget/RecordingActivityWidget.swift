@@ -19,9 +19,11 @@ struct RecordingActivityWidget: Widget {
                     VStack(spacing: 2) {
                         Text("Recording")
                             .font(.headline)
-                        Text("\(formatTime(context.state.elapsedSeconds)) / \(formatTime(context.attributes.maxDurationSeconds))")
-                            .font(.system(.body, design: .monospaced))
-                            .foregroundColor(.secondary)
+                        Text(
+                            "\(formatTime(context.state.elapsedSeconds)) / \(formatTime(context.attributes.maxDurationSeconds))"
+                        )
+                        .font(.system(.body, design: .monospaced))
+                        .foregroundColor(.secondary)
                     }
                 }
                 DynamicIslandExpandedRegion(.trailing) {
@@ -65,9 +67,11 @@ struct RecordingLockScreenView: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text("WhisperDB Recording")
                     .font(.headline)
-                Text("\(formatTime(context.state.elapsedSeconds)) / \(formatTime(context.attributes.maxDurationSeconds))")
-                    .font(.system(.body, design: .monospaced))
-                    .foregroundColor(.secondary)
+                Text(
+                    "\(formatTime(context.state.elapsedSeconds)) / \(formatTime(context.attributes.maxDurationSeconds))"
+                )
+                .font(.system(.body, design: .monospaced))
+                .foregroundColor(.secondary)
             }
 
             Spacer()

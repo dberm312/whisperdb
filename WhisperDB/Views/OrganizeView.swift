@@ -117,10 +117,13 @@ struct OrganizeView: View {
             HStack(spacing: 8) {
                 Image(systemName: "bubble.left.and.text.bubble.right")
                     .foregroundColor(.secondary)
-                TextField("Ask for a change — e.g. \"make it shorter\"", text: Binding(
-                    get: { viewModel.session.chatInstruction },
-                    set: { viewModel.session.chatInstruction = $0 }
-                ))
+                TextField(
+                    "Ask for a change — e.g. \"make it shorter\"",
+                    text: Binding(
+                        get: { viewModel.session.chatInstruction },
+                        set: { viewModel.session.chatInstruction = $0 }
+                    )
+                )
                 .textFieldStyle(.roundedBorder)
                 .focused($chatFocused)
                 .onSubmit { viewModel.session.submitChatInstruction() }
@@ -138,8 +141,8 @@ struct OrganizeView: View {
                 }
                 .buttonStyle(.plain)
                 .disabled(
-                    viewModel.session.isRefining ||
-                    viewModel.session.chatInstruction.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                    viewModel.session.isRefining
+                        || viewModel.session.chatInstruction.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
                 )
                 .keyboardShortcut(.return, modifiers: .command)
             }

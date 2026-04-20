@@ -70,7 +70,7 @@ final class StatusBarController: NSObject, ObservableObject, NSMenuDelegate {
                 string: " Processing…",
                 attributes: [
                     .foregroundColor: NSColor.white,
-                    .font: NSFont.menuBarFont(ofSize: 0)
+                    .font: NSFont.menuBarFont(ofSize: 0),
                 ]
             )
         }
@@ -150,7 +150,8 @@ final class StatusBarController: NSObject, ObservableObject, NSMenuDelegate {
             transcriptionManager.microphoneManager.menuSignature
         )
         let prev = previousMenuSnapshot
-        let changed = currentSnapshot.0 != prev.0
+        let changed =
+            currentSnapshot.0 != prev.0
             || currentSnapshot.1 != prev.1
             || currentSnapshot.2 != prev.2
             || Int(currentSnapshot.3 ?? -1) != Int(prev.3 ?? -1)
@@ -189,7 +190,8 @@ final class StatusBarController: NSObject, ObservableObject, NSMenuDelegate {
 
         if let elapsedTime = transcriptionManager.recordingElapsedTime {
             let cappedElapsedTime = min(elapsedTime, transcriptionManager.maxRecordingDuration)
-            let timerText = "Recording: \(formatDuration(cappedElapsedTime)) / \(formatDuration(transcriptionManager.maxRecordingDuration))"
+            let timerText =
+                "Recording: \(formatDuration(cappedElapsedTime)) / \(formatDuration(transcriptionManager.maxRecordingDuration))"
             let timerItem = NSMenuItem(title: timerText, action: nil, keyEquivalent: "")
             timerItem.isEnabled = false
             menu.addItem(timerItem)
@@ -245,14 +247,16 @@ final class StatusBarController: NSObject, ObservableObject, NSMenuDelegate {
                 copyItem.tag = index
                 submenu.addItem(copyItem)
 
-                let organizeItem = NSMenuItem(title: "Organize", action: #selector(organizeHistoryItem(_:)), keyEquivalent: "")
+                let organizeItem = NSMenuItem(
+                    title: "Organize", action: #selector(organizeHistoryItem(_:)), keyEquivalent: "")
                 organizeItem.target = self
                 organizeItem.tag = index
                 submenu.addItem(organizeItem)
 
                 submenu.addItem(NSMenuItem.separator())
 
-                let deleteItem = NSMenuItem(title: "Delete", action: #selector(deleteHistoryItem(_:)), keyEquivalent: "")
+                let deleteItem = NSMenuItem(
+                    title: "Delete", action: #selector(deleteHistoryItem(_:)), keyEquivalent: "")
                 deleteItem.target = self
                 deleteItem.tag = index
                 submenu.addItem(deleteItem)

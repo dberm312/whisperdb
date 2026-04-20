@@ -92,11 +92,12 @@ final class TranscriptionManager: ObservableObject {
     }
 
     private func stopAndTranscribe(preservedError: String? = nil) {
-        let recordingDuration: TimeInterval = if let recordingStartedAt {
-            Date().timeIntervalSince(recordingStartedAt)
-        } else {
-            0
-        }
+        let recordingDuration: TimeInterval =
+            if let recordingStartedAt {
+                Date().timeIntervalSince(recordingStartedAt)
+            } else {
+                0
+            }
 
         let peakLevel = recorder.getPeakAudioLevel()
 

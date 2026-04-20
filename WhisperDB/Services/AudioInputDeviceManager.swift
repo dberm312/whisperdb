@@ -35,8 +35,11 @@ final class AudioInputDeviceManager: ObservableObject {
 
     var menuSignature: String {
         let deviceSummary = devices.map { "\($0.uid):\($0.name)" }.joined(separator: "|")
-        return [selectedDeviceUID ?? "system-default", systemDefaultDeviceUID ?? "no-default", selectionWarning ?? "no-warning", deviceSummary]
-            .joined(separator: "::")
+        return [
+            selectedDeviceUID ?? "system-default", systemDefaultDeviceUID ?? "no-default",
+            selectionWarning ?? "no-warning", deviceSummary,
+        ]
+        .joined(separator: "::")
     }
 
     func refreshDevices() {
@@ -87,10 +90,12 @@ enum CoreAudioInputDevices {
             mElement: kAudioObjectPropertyElementMain
         )
 
-        guard let deviceID = readAudioDeviceIDProperty(
-            objectID: AudioObjectID(kAudioObjectSystemObject),
-            address: address
-        ) else {
+        guard
+            let deviceID = readAudioDeviceIDProperty(
+                objectID: AudioObjectID(kAudioObjectSystemObject),
+                address: address
+            )
+        else {
             return nil
         }
 
@@ -108,8 +113,8 @@ enum CoreAudioInputDevices {
         return deviceIDs()
             .compactMap { deviceID -> AudioInputDevice? in
                 guard inputChannelCount(for: deviceID) > 0,
-                      let name = deviceName(for: deviceID),
-                      let uid = deviceUID(for: deviceID)
+                    let name = deviceName(for: deviceID),
+                    let uid = deviceUID(for: deviceID)
                 else {
                     return nil
                 }
@@ -232,7 +237,7 @@ enum CoreAudioInputDevices {
         }
 
         let itemCount = Int(propertySize) / MemoryLayout<T>.stride
-        var values = Array<T>(unsafeUninitializedCapacity: itemCount) { buffer, initializedCount in
+        var values = [T](unsafeUninitializedCapacity: itemCount) { buffer, initializedCount in
             initializedCount = itemCount
         }
 

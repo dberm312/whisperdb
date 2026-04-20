@@ -73,10 +73,10 @@ public final class OrganizeSession: ObservableObject {
     public func submitChatInstruction() {
         let instruction = chatInstruction.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !instruction.isEmpty,
-              !isRefining,
-              !(loadingStates[selectedIntensity] ?? false),
-              let current = results[selectedIntensity],
-              !current.isEmpty
+            !isRefining,
+            !(loadingStates[selectedIntensity] ?? false),
+            let current = results[selectedIntensity],
+            !current.isEmpty
         else { return }
 
         let intensity = selectedIntensity

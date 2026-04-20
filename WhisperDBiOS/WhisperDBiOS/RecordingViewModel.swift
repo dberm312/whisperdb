@@ -1,5 +1,5 @@
-import ActivityKit
 import AVFoundation
+import ActivityKit
 import SwiftUI
 import WhisperDBKit
 
@@ -85,7 +85,7 @@ final class RecordingViewModel: ObservableObject {
                 for attempt in 0..<3 {
                     do {
                         if attempt > 0 {
-                            try await Task.sleep(nanoseconds: 200_000_000) // 200ms between retries
+                            try await Task.sleep(nanoseconds: 200_000_000)  // 200ms between retries
                         }
                         try recorder.startRecording()
                         lastError = nil
@@ -102,7 +102,7 @@ final class RecordingViewModel: ObservableObject {
                 }
 
                 // Verify audio engine is actually producing data
-                try await Task.sleep(nanoseconds: 200_000_000) // 200ms warm-up
+                try await Task.sleep(nanoseconds: 200_000_000)  // 200ms warm-up
                 guard recorder.isEngineRunning else {
                     recorder.stopRecording()
                     error = "Audio engine failed to start. Please try again."
@@ -212,16 +212,6 @@ final class RecordingViewModel: ObservableObject {
         saveHistory()
     }
 
-    func deleteHistoryItem(id: UUID) {
-        history.removeAll { $0.id == id }
-        saveHistory()
-    }
-
-    func clearHistory() {
-        history.removeAll()
-        saveHistory()
-    }
-
     private func saveHistory() {
         if let data = try? JSONEncoder().encode(history) {
             UserDefaults.standard.set(data, forKey: Self.historyKey)
@@ -230,7 +220,8 @@ final class RecordingViewModel: ObservableObject {
 
     private func loadHistory() {
         guard let data = UserDefaults.standard.data(forKey: Self.historyKey),
-              let items = try? JSONDecoder().decode([HistoryItem].self, from: data) else { return }
+            let items = try? JSONDecoder().decode([HistoryItem].self, from: data)
+        else { return }
         history = items
     }
 

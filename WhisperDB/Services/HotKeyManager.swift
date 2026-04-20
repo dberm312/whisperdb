@@ -1,6 +1,6 @@
+import AppKit
 import Carbon
 import HotKey
-import AppKit
 
 final class HotKeyManager {
     private var hotKey: HotKey?
@@ -44,8 +44,9 @@ final class HotKeyManager {
                     self.optionHeld = true
                     self.otherKeyPressedWhileOption = false
                 } else if !optionNow && self.optionHeld {
-                    let cleanRelease = !self.otherKeyPressedWhileOption &&
-                        event.modifierFlags.intersection([.shift, .command, .control, .function]).isEmpty
+                    let cleanRelease =
+                        !self.otherKeyPressedWhileOption
+                        && event.modifierFlags.intersection([.shift, .command, .control, .function]).isEmpty
                     self.optionHeld = false
                     if cleanRelease {
                         self.onStopRecording?()

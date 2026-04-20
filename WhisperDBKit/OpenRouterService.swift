@@ -89,11 +89,12 @@ public final class OpenRouterService {
         instruction: String,
         intensity: CleanupIntensity
     ) -> AsyncThrowingStream<String, Error> {
-        let system = systemPrompt(for: intensity) + "\n\n" + """
-            You previously produced a cleaned version of the transcription. The user will now give you an \
-            instruction describing a change they want. Apply that change while continuing to obey the \
-            cleanup style described above. Output the full revised document — not just the changed parts.
-            """
+        let system =
+            systemPrompt(for: intensity) + "\n\n" + """
+                You previously produced a cleaned version of the transcription. The user will now give you an \
+                instruction describing a change they want. Apply that change while continuing to obey the \
+                cleanup style described above. Output the full revised document — not just the changed parts.
+                """
 
         let userContent = """
             Original transcription:
@@ -139,10 +140,11 @@ public final class OpenRouterService {
                         if payload == "[DONE]" { break }
 
                         guard let data = payload.data(using: .utf8),
-                              let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-                              let choices = json["choices"] as? [[String: Any]],
-                              let delta = choices.first?["delta"] as? [String: Any],
-                              let content = delta["content"] as? String else {
+                            let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                            let choices = json["choices"] as? [[String: Any]],
+                            let delta = choices.first?["delta"] as? [String: Any],
+                            let content = delta["content"] as? String
+                        else {
                             continue
                         }
 

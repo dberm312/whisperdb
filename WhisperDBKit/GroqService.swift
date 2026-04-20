@@ -47,7 +47,8 @@ public final class GroqService {
         }
 
         guard let text = String(data: data, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines),
-              !text.isEmpty else {
+            !text.isEmpty
+        else {
             throw GroqError.emptyTranscription
         }
 

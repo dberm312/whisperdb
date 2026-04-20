@@ -144,10 +144,13 @@ struct OrganizeView: View {
             HStack(spacing: 8) {
                 Image(systemName: "bubble.left.and.text.bubble.right")
                     .foregroundColor(.secondary)
-                TextField("Ask for a change", text: Binding(
-                    get: { viewModel.session.chatInstruction },
-                    set: { viewModel.session.chatInstruction = $0 }
-                ))
+                TextField(
+                    "Ask for a change",
+                    text: Binding(
+                        get: { viewModel.session.chatInstruction },
+                        set: { viewModel.session.chatInstruction = $0 }
+                    )
+                )
                 .textFieldStyle(.roundedBorder)
                 .focused($chatFocused)
                 .submitLabel(.send)
@@ -166,8 +169,8 @@ struct OrganizeView: View {
                     }
                 }
                 .disabled(
-                    viewModel.session.isRefining ||
-                    viewModel.session.chatInstruction.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                    viewModel.session.isRefining
+                        || viewModel.session.chatInstruction.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
                 )
             }
         }
