@@ -40,13 +40,19 @@ final class HotKeyManager {
             flagsMonitor = NSEvent.addGlobalMonitorForEvents(matching: .flagsChanged) { [weak self] event in
                 guard let self = self else { return }
                 let optionNow = event.modifierFlags.contains(.option)
+                let otherModifiers = event.modifierFlags
+                    .intersection([.shift, .command, .control, .function])
+
                 if optionNow && !self.optionHeld {
                     self.optionHeld = true
-                    self.otherKeyPressedWhileOption = false
+                    self.otherKeyPressedWhileOption = !otherModifiers.isEmpty
+                } else if optionNow && self.optionHeld {
+                    if !otherModifiers.isEmpty {
+                        self.otherKeyPressedWhileOption = true
+                    }
                 } else if !optionNow && self.optionHeld {
                     let cleanRelease =
-                        !self.otherKeyPressedWhileOption
-                        && event.modifierFlags.intersection([.shift, .command, .control, .function]).isEmpty
+                        !self.otherKeyPressedWhileOption && otherModifiers.isEmpty
                     self.optionHeld = false
                     if cleanRelease {
                         self.onStopRecording?()
