@@ -16,7 +16,7 @@ mkdir -p "$MACOS" "$RESOURCES"
 
 cp .build/debug/$APP_NAME "$MACOS/"
 cp WhisperDB/Info.plist "$CONTENTS/"
-cp WhisperDB/Resources/AppIcon.icns "$RESOURCES/"
+cp -R WhisperDB/Resources/. "$RESOURCES/"
 
 # Copy .env into Resources so the app can find it
 if [ -f .env ]; then

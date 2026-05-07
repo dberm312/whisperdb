@@ -184,8 +184,9 @@ final class StatusBarController: NSObject, ObservableObject, NSMenuDelegate {
         case .processing:
             statusText = "WhisperDB — Processing…"
         }
-        let statusItem = NSMenuItem(title: statusText, action: nil, keyEquivalent: "")
-        statusItem.isEnabled = false
+        let statusItem = NSMenuItem(title: statusText, action: #selector(startOrFocusRealtime), keyEquivalent: "")
+        statusItem.target = self
+        statusItem.isEnabled = transcriptionManager.state != .processing
         menu.addItem(statusItem)
 
         if let elapsedTime = transcriptionManager.recordingElapsedTime {
@@ -216,7 +217,7 @@ final class StatusBarController: NSObject, ObservableObject, NSMenuDelegate {
         menu.addItem(NSMenuItem.separator())
 
         // Hotkey hints
-        let hintItem = NSMenuItem(title: "⌥ Space to toggle recording", action: nil, keyEquivalent: "")
+        let hintItem = NSMenuItem(title: "⌥ Space to start or stop Realtime", action: nil, keyEquivalent: "")
         hintItem.isEnabled = false
         menu.addItem(hintItem)
 
@@ -354,6 +355,10 @@ final class StatusBarController: NSObject, ObservableObject, NSMenuDelegate {
 
     @objc private func clearHistory() {
         transcriptionManager.clearHistory()
+    }
+
+    @objc private func startOrFocusRealtime() {
+        transcriptionManager.startOrFocusRealtime()
     }
 
     func menuWillOpen(_ menu: NSMenu) {

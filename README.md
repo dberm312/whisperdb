@@ -1,6 +1,6 @@
 # WhisperDB
 
-Instant voice-to-text transcription for macOS and iOS. Speak, and your words are transcribed using Whisper (via Groq) and ready to use.
+Instant voice-to-text transcription for macOS and iOS. On macOS, a small Realtime voice window can stream live speech to OpenAI, show verbatim transcript text, and maintain a session to-do list.
 
 ## Project Structure
 
@@ -14,7 +14,7 @@ WhisperDB is split into three targets:
 
 ### macOS
 
-- **Instant dictation** — transcribes speech using Whisper (via Groq) and copies the result to your clipboard
+- **Realtime dictation** — streams microphone audio to `gpt-realtime-2`, shows a live verbatim transcript, extracts session to-dos, and copies the final transcript
 - **Audio-reactive recording indicator** — the menu bar icon turns red and responds to your voice level while recording
 - **Dictation history** — browse, copy, organize, and clear your previous transcriptions
 - **Organize with AI** — restructure raw transcriptions into clean markdown using Claude
@@ -30,8 +30,8 @@ WhisperDB is split into three targets:
 
 | Shortcut | Action |
 |---|---|
-| `⌥ Space` | Start or stop recording |
-| `⌥` (Option alone, while recording) | Stop the current recording |
+| `⌥ Space` | Start Realtime recording or focus the Realtime window |
+| Realtime **Stop** button | Stop the current recording |
 | `⇧⌥ Space` | Open dictation history window |
 
 ## Requirements
@@ -40,6 +40,7 @@ WhisperDB is split into three targets:
 - **iOS:** iOS 16+
 - [Groq API key](https://console.groq.com/) — for Whisper transcription
 - [OpenRouter API key](https://openrouter.ai/) — for the Organize feature (uses Claude)
+- [OpenAI API key](https://platform.openai.com/api-keys) — for the macOS Realtime voice window
 
 ## Setup
 
@@ -57,6 +58,7 @@ WhisperDB is split into three targets:
    ```
    GROQ_API_KEY=your_groq_api_key_here
    OPENROUTER_API_KEY=your_openrouter_api_key_here
+   OPENAI_API_KEY=your_openai_api_key_here
    ```
 
 3. **iOS** — Create a `Config.plist` at `WhisperDBiOS/WhisperDBiOS/Config.plist`:
@@ -103,12 +105,13 @@ Select an iOS simulator or connected device, then build and run with `⌘R`.
 ### macOS
 
 1. WhisperDB lives in your menu bar with a captions icon
-2. Press **⌥ Space** to start recording — the menu bar icon turns red and the timer appears
-3. Speak your dictation
-4. Press **⌥** (Option key) to stop — the audio is sent to Groq's Whisper API
-5. While it processes, the menu bar icon turns gray and shows **Processing…**
-6. The transcription is copied to your clipboard
-7. Press **⇧⌥ Space** anytime to open a window with your full dictation history
+2. Press **⌥ Space** to open the Realtime window and start listening
+3. Speak naturally — the left pane shows verbatim transcript text and the right pane fills with to-dos
+4. Click **Stop** in the Realtime window — the session closes, the transcript is copied, and the window stays open
+5. Use **Copy** in the to-do pane to copy the session list
+6. Press **⇧⌥ Space** anytime to open a window with your full dictation history
+
+The Realtime session endpoint runs locally inside the macOS app. Browser SDP from the embedded WebView is posted to the app's loopback `/session` endpoint, and the app posts multipart fields named `sdp` and `session` to OpenAI's `/v1/realtime/calls` endpoint with `OPENAI_API_KEY` kept server-side.
 
 ### iOS
 

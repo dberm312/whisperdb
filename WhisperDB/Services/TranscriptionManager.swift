@@ -29,6 +29,8 @@ final class TranscriptionManager: ObservableObject {
     private let recordingLimitErrorMessage = "Recording stopped at 15 minutes to prevent accidental over-recording."
     private var recordingStartedAt: Date?
     private var recordingLimitTask: Task<Void, Never>?
+    private var pendingRealtimeStopError: String?
+    private var realtimeStopInProgress = false
 
     var recordingElapsedTime: TimeInterval? {
         guard state == .recording, let recordingStartedAt else { return nil }
@@ -48,10 +50,10 @@ final class TranscriptionManager: ObservableObject {
             }
         }
 
-        hotKeyManager.onStopRecording = { [weak self] in
+        hotKeyManager.onOptionReleaseWhileRecording = { [weak self] in
             Task { @MainActor in
                 guard let self = self, self.state == .recording else { return }
-                self.stopAndTranscribe()
+                self.stopRealtimeRecording()
             }
         }
 
@@ -66,12 +68,83 @@ final class TranscriptionManager: ObservableObject {
     func toggle() {
         switch state {
         case .idle:
-            startRecording()
+            startRealtimeRecording()
         case .recording:
-            stopAndTranscribe()
+            stopRealtimeRecording()
         case .processing:
             NSSound.beep()
         }
+    }
+
+    func startOrFocusRealtime() {
+        switch state {
+        case .idle:
+            startRealtimeRecording()
+        case .recording:
+            RealtimeWindowController.shared.focusWindow()
+        case .processing:
+            NSSound.beep()
+        }
+    }
+
+    private func startRealtimeRecording() {
+        lastError = nil
+        pendingRealtimeStopError = nil
+        realtimeStopInProgress = false
+        recordingStartedAt = Date()
+        state = .recording
+        hotKeyManager.setRecording(true)
+        scheduleRecordingLimitTask()
+        RealtimeWindowController.shared.startRecording(with: self)
+    }
+
+    private func stopRealtimeRecording(preservedError: String? = nil) {
+        guard state == .recording, realtimeStopInProgress == false else { return }
+
+        pendingRealtimeStopError = preservedError
+        realtimeStopInProgress = true
+        hotKeyManager.setRecording(false)
+        recordingStartedAt = nil
+        cancelRecordingLimitTask()
+
+        RealtimeWindowController.shared.stopRecording()
+    }
+
+    func realtimeDidStart() {
+        guard state == .recording else { return }
+        lastError = nil
+    }
+
+    func completeRealtimeRecording(transcript: String, error: String? = nil) {
+        let cleanedTranscript = transcript.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        if !cleanedTranscript.isEmpty {
+            ClipboardService.copy(cleanedTranscript)
+
+            let transcription = Transcription(text: cleanedTranscript, timestamp: Date())
+            history.insert(transcription, at: 0)
+            if history.count > maxHistoryItems {
+                history = Array(history.prefix(maxHistoryItems))
+            }
+        }
+
+        hotKeyManager.setRecording(false)
+        recordingStartedAt = nil
+        cancelRecordingLimitTask()
+        state = .idle
+        realtimeStopInProgress = false
+        lastError = error ?? pendingRealtimeStopError
+        pendingRealtimeStopError = nil
+    }
+
+    func failRealtimeRecording(message: String) {
+        hotKeyManager.setRecording(false)
+        recordingStartedAt = nil
+        cancelRecordingLimitTask()
+        state = .idle
+        realtimeStopInProgress = false
+        pendingRealtimeStopError = nil
+        lastError = message
     }
 
     private func startRecording() {
@@ -193,7 +266,7 @@ final class TranscriptionManager: ObservableObject {
     private func stopBecauseRecordingLimitReached() {
         guard state == .recording else { return }
         NSSound.beep()
-        stopAndTranscribe(preservedError: recordingLimitErrorMessage)
+        stopRealtimeRecording(preservedError: recordingLimitErrorMessage)
     }
 
     deinit {

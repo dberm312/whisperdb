@@ -20,6 +20,11 @@
     <string>1.0</string>
     <key>LSUIElement</key>
     <true/>
+    <key>NSAppTransportSecurity</key>
+    <dict>
+        <key>NSAllowsLocalNetworking</key>
+        <true/>
+    </dict>
     <key>NSMicrophoneUsageDescription</key>
     <string>WhisperDB needs microphone access to record audio for transcription.</string>
 </dict>

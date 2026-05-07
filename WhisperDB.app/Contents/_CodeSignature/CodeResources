@@ -6,11 +6,23 @@
 	<dict>
 		<key>Resources/.env</key>
 		<data>
-		oBpbcLja68InARtPvVsd8z7vvjY=
+		4KnfsPxH31auDpap2kSSuQr3ttA=
 		</data>
 		<key>Resources/AppIcon.icns</key>
 		<data>
 		qWDqK0NIjAy6J49QbgG47N/pvsE=
+		</data>
+		<key>Resources/Realtime/app.css</key>
+		<data>
+		27mUhdpNhuE8I1DmutlGWUamswM=
+		</data>
+		<key>Resources/Realtime/app.js</key>
+		<data>
+		d1LoQAupF98qkENnb03xODieacE=
+		</data>
+		<key>Resources/Realtime/index.html</key>
+		<data>
+		3d72Jrso3kVrmiD1LsQvsjX7SCY=
 		</data>
 	</dict>
 	<key>files2</key>
@@ -19,7 +31,7 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			1zSg8caQ4GAU3H3RPd0O+zUoyTqzDb7zTSdadoaNXP4=
+			Suth9w6oN0t+nqvkIkY/uzfoBfHmP/dIf+JFYcnNg3A=
 			</data>
 		</dict>
 		<key>Resources/AppIcon.icns</key>
@@ -27,6 +39,27 @@
 			<key>hash2</key>
 			<data>
 			aMPG5B5qoELO7xZNyCO+8gyedj2LxoBnw6b4h79HtFY=
+			</data>
+		</dict>
+		<key>Resources/Realtime/app.css</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			eIzVokmZmCRQwCyTrIj64Hon5a26/RMHkwiN3yJtDUU=
+			</data>
+		</dict>
+		<key>Resources/Realtime/app.js</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			ttU6aSjyU7Wj8BOWEzpqr9uMHra/S57knrRP808dS2U=
+			</data>
+		</dict>
+		<key>Resources/Realtime/index.html</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			q3ESUG6M+MGs4kKm/i3wZt6FxpYcEq8G6lPzmbfkQk4=
 			</data>
 		</dict>
 	</dict>

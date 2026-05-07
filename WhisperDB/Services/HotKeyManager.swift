@@ -12,11 +12,11 @@ final class HotKeyManager {
     private var otherKeyPressedWhileOption = false
 
     var onToggle: (() -> Void)?
-    var onStopRecording: (() -> Void)?
+    var onOptionReleaseWhileRecording: (() -> Void)?
     var onOpenHistory: (() -> Void)?
 
     init() {
-        // Option+Space — toggle recording
+        // Option+Space — start or stop recording
         hotKey = HotKey(key: .space, modifiers: [.option])
         hotKey?.keyDownHandler = { [weak self] in
             self?.onToggle?()
@@ -29,9 +29,9 @@ final class HotKeyManager {
         }
     }
 
-    /// Enable/disable the Option-key-alone monitor for stopping recording.
-    /// Stop fires only on Option key release when no other key was pressed
-    /// in between — so Option+Tab (space switch) does not stop recording.
+    /// Enable/disable the Option-key-alone monitor while recording.
+    /// The callback fires only on Option key release when no other key was pressed
+    /// in between — so Option+Tab (space switch) does not trigger it.
     func setRecording(_ isRecording: Bool) {
         if isRecording {
             optionHeld = false
@@ -55,7 +55,7 @@ final class HotKeyManager {
                         !self.otherKeyPressedWhileOption && otherModifiers.isEmpty
                     self.optionHeld = false
                     if cleanRelease {
-                        self.onStopRecording?()
+                        self.onOptionReleaseWhileRecording?()
                     }
                 }
             }

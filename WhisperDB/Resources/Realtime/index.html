@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>WhisperDB Live</title>
+    <link rel="stylesheet" href="/app.css">
+  </head>
+  <body>
+    <main class="shell">
+      <header class="topbar">
+        <div class="brand">
+          <span class="status-dot" id="statusDot"></span>
+          <span id="statusLabel">Ready</span>
+        </div>
+        <div class="controls">
+          <button
+            id="copyAllButton"
+            class="icon-button copy-button"
+            type="button"
+            title="Copy transcript and to-dos"
+            aria-label="Copy transcript and to-dos"
+            disabled
+          ></button>
+          <button id="startButton" type="button">Start</button>
+          <button id="stopButton" type="button" disabled>Stop</button>
+        </div>
+      </header>
+
+      <section class="panes">
+        <section class="pane transcript-pane" aria-label="Transcript">
+          <div class="pane-head">
+            <h1>Transcript</h1>
+            <button
+              id="copyTranscriptButton"
+              class="icon-button copy-button"
+              type="button"
+              title="Copy transcript"
+              aria-label="Copy transcript"
+              disabled
+            ></button>
+          </div>
+          <div id="transcript" class="transcript empty">No transcript yet</div>
+        </section>
+
+        <section class="pane todo-pane" aria-label="To-dos">
+          <div class="pane-head">
+            <h2>To-dos</h2>
+            <button
+              id="copyTodosButton"
+              class="icon-button copy-button"
+              type="button"
+              title="Copy to-dos"
+              aria-label="Copy to-dos"
+              disabled
+            ></button>
+          </div>
+          <div id="todoList" class="todo-list empty">No to-dos</div>
+        </section>
+      </section>
+    </main>
+
+    <script src="/app.js"></script>
+  </body>
+</html>
