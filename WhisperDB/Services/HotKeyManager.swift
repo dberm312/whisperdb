@@ -7,6 +7,8 @@ final class HotKeyManager {
     private var historyHotKey: HotKey?
     private var flagsMonitor: Any?
     private var keyDownMonitor: Any?
+    private var localFlagsMonitor: Any?
+    private var localKeyDownMonitor: Any?
 
     private var optionHeld = false
     private var otherKeyPressedWhileOption = false
@@ -38,31 +40,23 @@ final class HotKeyManager {
             otherKeyPressedWhileOption = false
 
             flagsMonitor = NSEvent.addGlobalMonitorForEvents(matching: .flagsChanged) { [weak self] event in
-                guard let self = self else { return }
-                let optionNow = event.modifierFlags.contains(.option)
-                let otherModifiers = event.modifierFlags
-                    .intersection([.shift, .command, .control, .function])
-
-                if optionNow && !self.optionHeld {
-                    self.optionHeld = true
-                    self.otherKeyPressedWhileOption = !otherModifiers.isEmpty
-                } else if optionNow && self.optionHeld {
-                    if !otherModifiers.isEmpty {
-                        self.otherKeyPressedWhileOption = true
-                    }
-                } else if !optionNow && self.optionHeld {
-                    let cleanRelease =
-                        !self.otherKeyPressedWhileOption && otherModifiers.isEmpty
-                    self.optionHeld = false
-                    if cleanRelease {
-                        self.onOptionReleaseWhileRecording?()
-                    }
-                }
+                self?.handleFlagsChanged(event)
             }
 
             keyDownMonitor = NSEvent.addGlobalMonitorForEvents(matching: .keyDown) { [weak self] _ in
-                guard let self = self, self.optionHeld else { return }
-                self.otherKeyPressedWhileOption = true
+                self?.handleKeyDown()
+            }
+
+            // Local monitors fire while WhisperDB is the active app; global monitors fire while it isn't.
+            // Both are needed because the Realtime panel brings WhisperDB to the foreground.
+            localFlagsMonitor = NSEvent.addLocalMonitorForEvents(matching: .flagsChanged) { [weak self] event in
+                self?.handleFlagsChanged(event)
+                return event
+            }
+
+            localKeyDownMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
+                self?.handleKeyDown()
+                return event
             }
         } else {
             if let monitor = flagsMonitor {
@@ -73,9 +67,43 @@ final class HotKeyManager {
                 NSEvent.removeMonitor(monitor)
                 keyDownMonitor = nil
             }
+            if let monitor = localFlagsMonitor {
+                NSEvent.removeMonitor(monitor)
+                localFlagsMonitor = nil
+            }
+            if let monitor = localKeyDownMonitor {
+                NSEvent.removeMonitor(monitor)
+                localKeyDownMonitor = nil
+            }
             optionHeld = false
             otherKeyPressedWhileOption = false
         }
+    }
+
+    private func handleFlagsChanged(_ event: NSEvent) {
+        let optionNow = event.modifierFlags.contains(.option)
+        let otherModifiers = event.modifierFlags
+            .intersection([.shift, .command, .control, .function])
+
+        if optionNow && !optionHeld {
+            optionHeld = true
+            otherKeyPressedWhileOption = !otherModifiers.isEmpty
+        } else if optionNow && optionHeld {
+            if !otherModifiers.isEmpty {
+                otherKeyPressedWhileOption = true
+            }
+        } else if !optionNow && optionHeld {
+            let cleanRelease = !otherKeyPressedWhileOption && otherModifiers.isEmpty
+            optionHeld = false
+            if cleanRelease {
+                onOptionReleaseWhileRecording?()
+            }
+        }
+    }
+
+    private func handleKeyDown() {
+        guard optionHeld else { return }
+        otherKeyPressedWhileOption = true
     }
 
     deinit {
@@ -85,6 +113,12 @@ final class HotKeyManager {
             NSEvent.removeMonitor(monitor)
         }
         if let monitor = keyDownMonitor {
+            NSEvent.removeMonitor(monitor)
+        }
+        if let monitor = localFlagsMonitor {
+            NSEvent.removeMonitor(monitor)
+        }
+        if let monitor = localKeyDownMonitor {
             NSEvent.removeMonitor(monitor)
         }
     }

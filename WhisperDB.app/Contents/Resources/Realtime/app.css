@@ -56,7 +56,7 @@ button:disabled {
 
 .shell {
   display: grid;
-  grid-template-rows: 42px minmax(0, 1fr);
+  grid-template-rows: 36px minmax(0, 1fr);
   width: 100%;
   height: 100%;
   background:
@@ -72,7 +72,7 @@ button:disabled {
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  padding: 9px 10px 7px 12px;
+  padding: 7px 10px 6px 12px;
   border-bottom: 1px solid var(--line);
   -webkit-app-region: drag;
 }
@@ -130,7 +130,7 @@ button:disabled {
 
 .pane {
   display: grid;
-  grid-template-rows: 34px minmax(0, 1fr);
+  grid-template-rows: 30px minmax(0, 1fr);
   min-width: 0;
   min-height: 0;
 }
@@ -142,7 +142,7 @@ button:disabled {
 .pane-head {
   justify-content: space-between;
   gap: 8px;
-  padding: 7px 10px 6px 12px;
+  padding: 5px 10px;
   border-bottom: 1px solid color-mix(in srgb, var(--line) 72%, transparent);
 }
 
@@ -216,7 +216,7 @@ h2 {
 .todo-list {
   min-height: 0;
   overflow: auto;
-  padding: 10px 12px 14px;
+  padding: 8px 12px 10px;
   scrollbar-width: thin;
 }
 
@@ -242,7 +242,7 @@ h2 {
 .todo-list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
 .todo {
@@ -250,7 +250,7 @@ h2 {
   grid-template-columns: 14px minmax(0, 1fr);
   gap: 7px;
   align-items: start;
-  padding-bottom: 8px;
+  padding-bottom: 6px;
   border-bottom: 1px solid color-mix(in srgb, var(--line) 60%, transparent);
 }
 

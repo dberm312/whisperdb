@@ -7,6 +7,13 @@ final class RealtimeWindowController: NSObject, NSWindowDelegate, WKNavigationDe
 {
     static let shared = RealtimeWindowController()
 
+    private enum PanelLayout {
+        static let defaultSize = NSSize(width: 360, height: 180)
+        static let minimumSize = NSSize(width: 320, height: 180)
+        static let screenMargin: CGFloat = 24
+        static let frameAutosaveName = "WhisperDBRealtimePanelCompact"
+    }
+
     private let server = RealtimeSessionServer.shared
     private weak var manager: TranscriptionManager?
     private var window: NSPanel?
@@ -115,8 +122,8 @@ final class RealtimeWindowController: NSObject, NSWindowDelegate, WKNavigationDe
         panel.hidesOnDeactivate = false
         panel.level = .floating
         panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
-        panel.minSize = NSSize(width: 320, height: 320)
-        panel.setFrameAutosaveName("WhisperDBRealtimePanel")
+        panel.minSize = PanelLayout.minimumSize
+        panel.setFrameAutosaveName(PanelLayout.frameAutosaveName)
 
         window = panel
 
@@ -126,12 +133,11 @@ final class RealtimeWindowController: NSObject, NSWindowDelegate, WKNavigationDe
     }
 
     private func initialWindowFrame() -> NSRect {
-        let size = NSSize(width: 360, height: 360)
+        let size = PanelLayout.defaultSize
         let visibleFrame = NSScreen.main?.visibleFrame ?? NSRect(x: 0, y: 0, width: 1440, height: 900)
-        let margin: CGFloat = 24
         let origin = NSPoint(
-            x: visibleFrame.maxX - size.width - margin,
-            y: visibleFrame.maxY - size.height - margin
+            x: visibleFrame.maxX - size.width - PanelLayout.screenMargin,
+            y: visibleFrame.maxY - size.height - PanelLayout.screenMargin
         )
         return NSRect(origin: origin, size: size)
     }
