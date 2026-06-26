@@ -11,6 +11,17 @@ final class AudioRecorder: ObservableObject {
     private var audioFile: AVAudioFile?
     private(set) var recordingURL: URL?
 
+    // Streaming (live transcription) state. When set, captured audio is resampled
+    // to 16 kHz mono Int16 PCM and delivered to `onPCMChunk` instead of a file.
+    private var pcmConverter: AVAudioConverter?
+    private var onPCMChunk: ((Data) -> Void)?
+    private let streamFormat = AVAudioFormat(
+        commonFormat: .pcmFormatInt16,
+        sampleRate: 16_000,
+        channels: 1,
+        interleaved: true
+    )!
+
     func startRecording(selectedDeviceUID: String? = nil) throws {
         peakAudioLevel = 0.0
         let engine = AVAudioEngine()
@@ -66,6 +77,87 @@ final class AudioRecorder: ObservableObject {
         isRecording = true
     }
 
+    /// Live-streaming capture. Resamples the microphone input to 16 kHz mono
+    /// Int16 PCM and hands each chunk to `onPCM` (for NVIDIA Parakeet streaming
+    /// ASR). No audio file is written. Audio-level metering is preserved so the
+    /// status bar animation keeps working.
+    func startStreaming(selectedDeviceUID: String? = nil, onPCM: @escaping (Data) -> Void) throws {
+        peakAudioLevel = 0.0
+        recordingURL = nil
+        onPCMChunk = onPCM
+
+        let engine = AVAudioEngine()
+        let inputNode = engine.inputNode
+
+        if let selectedDeviceUID,
+            let deviceID = CoreAudioInputDevices.deviceID(forUID: selectedDeviceUID)
+        {
+            try setInputDevice(deviceID, on: inputNode)
+        }
+
+        let inputFormat = inputNode.outputFormat(forBus: 0)
+
+        guard let converter = AVAudioConverter(from: inputFormat, to: streamFormat) else {
+            throw AudioRecorderError.streamingConverterUnavailable
+        }
+        pcmConverter = converter
+
+        inputNode.installTap(onBus: 0, bufferSize: 4096, format: inputFormat) { [weak self] buffer, _ in
+            self?.updateAudioLevel(from: buffer)
+            self?.convertAndEmit(buffer: buffer)
+        }
+
+        engine.prepare()
+        try engine.start()
+        audioEngine = engine
+        isRecording = true
+    }
+
+    private func updateAudioLevel(from buffer: AVAudioPCMBuffer) {
+        guard let channelData = buffer.floatChannelData?[0] else { return }
+        let frameLength = Int(buffer.frameLength)
+        var sum: Float = 0
+        for i in 0..<frameLength {
+            sum += channelData[i] * channelData[i]
+        }
+        let rms = sqrt(sum / Float(max(frameLength, 1)))
+        let normalized = min(max(rms * 5.0, 0.0), 1.0)
+        peakAudioLevel = max(peakAudioLevel, normalized)
+        DispatchQueue.main.async {
+            self.audioLevel = normalized
+        }
+    }
+
+    private func convertAndEmit(buffer: AVAudioPCMBuffer) {
+        guard let converter = pcmConverter, let onPCMChunk else { return }
+
+        let ratio = streamFormat.sampleRate / buffer.format.sampleRate
+        let capacity = AVAudioFrameCount(Double(buffer.frameLength) * ratio + 1024)
+        guard let outBuffer = AVAudioPCMBuffer(pcmFormat: streamFormat, frameCapacity: capacity) else {
+            return
+        }
+
+        var fed = false
+        var conversionError: NSError?
+        let status = converter.convert(to: outBuffer, error: &conversionError) { _, inputStatus in
+            if fed {
+                inputStatus.pointee = .noDataNow
+                return nil
+            }
+            fed = true
+            inputStatus.pointee = .haveData
+            return buffer
+        }
+
+        guard status != .error, outBuffer.frameLength > 0,
+            let int16Data = outBuffer.int16ChannelData
+        else { return }
+
+        let byteCount = Int(outBuffer.frameLength) * MemoryLayout<Int16>.size
+        let data = Data(bytes: int16Data[0], count: byteCount)
+        onPCMChunk(data)
+    }
+
     func getPeakAudioLevel() -> Float {
         return peakAudioLevel
     }
@@ -75,6 +167,8 @@ final class AudioRecorder: ObservableObject {
         audioEngine?.stop()
         audioEngine = nil
         audioFile = nil
+        pcmConverter = nil
+        onPCMChunk = nil
         isRecording = false
         audioLevel = 0.0
         peakAudioLevel = 0.0
@@ -112,6 +206,7 @@ final class AudioRecorder: ObservableObject {
 private enum AudioRecorderError: LocalizedError {
     case inputDeviceSelectionUnavailable
     case failedToSelectInputDevice(status: OSStatus)
+    case streamingConverterUnavailable
 
     var errorDescription: String? {
         switch self {
@@ -119,6 +214,8 @@ private enum AudioRecorderError: LocalizedError {
             return "Microphone selection is unavailable on this Mac."
         case .failedToSelectInputDevice(let status):
             return "Failed to use the selected microphone (\(status))."
+        case .streamingConverterUnavailable:
+            return "Could not set up audio conversion for live transcription."
         }
     }
 }

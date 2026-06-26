@@ -1,0 +1,24 @@
+{
+  "configurations": [
+    {
+      "type": "swift",
+      "request": "launch",
+      "args": [],
+      "cwd": "${workspaceFolder:whisper-db}",
+      "name": "Debug WhisperDB",
+      "target": "WhisperDB",
+      "configuration": "debug",
+      "preLaunchTask": "swift: Build Debug WhisperDB"
+    },
+    {
+      "type": "swift",
+      "request": "launch",
+      "args": [],
+      "cwd": "${workspaceFolder:whisper-db}",
+      "name": "Release WhisperDB",
+      "target": "WhisperDB",
+      "configuration": "release",
+      "preLaunchTask": "swift: Build Release WhisperDB"
+    }
+  ]
+}
