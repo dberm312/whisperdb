@@ -1,45 +1,78 @@
 import SwiftUI
+import WhisperDBKit
 
 /// Live-caption style view: committed text in full strength, the current interim
 /// hypothesis dimmed, auto-scrolling as new words arrive.
+///
+/// The content lays out at its natural height inside a single scroll view; the view
+/// reports that natural height to its window controller so the panel can auto-fit. The
+/// scroll view only scrolls once the panel is capped (or manually shrunk) below it.
 struct LiveTranscriptionView: View {
     @ObservedObject var manager: TranscriptionManager
+    /// Reports the natural height the panel needs to show everything (content + chrome).
+    let onContentHeightChange: (CGFloat) -> Void
+
+    /// Outer padding around the rounded card, added on top of the measured content.
+    private let outerPadding: CGFloat = 8
+
+    init(manager: TranscriptionManager, onContentHeightChange: @escaping (CGFloat) -> Void) {
+        self.manager = manager
+        self.onContentHeightChange = onContentHeightChange
+    }
 
     private var hasText: Bool {
         !manager.liveText.isEmpty || !manager.partialText.isEmpty
     }
 
     var body: some View {
+        ScrollViewReader { proxy in
+            ScrollView(.vertical, showsIndicators: false) {
+                content
+                    .background(
+                        GeometryReader { geo in
+                            Color.clear.preference(
+                                key: ContentHeightKey.self,
+                                value: geo.size.height + outerPadding * 2
+                            )
+                        }
+                    )
+                    .id("content")
+            }
+            .onChange(of: manager.displayedTranscript) { _, _ in
+                withAnimation(.easeOut(duration: 0.15)) {
+                    proxy.scrollTo("content", anchor: .bottom)
+                }
+            }
+            .onPreferenceChange(ContentHeightKey.self) { height in
+                onContentHeightChange(height)
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .padding(outerPadding)
+    }
+
+    /// The card content at its natural height (header + transcript + summary).
+    private var content: some View {
         VStack(alignment: .leading, spacing: 10) {
             header
 
-            ScrollViewReader { proxy in
-                ScrollView(.vertical, showsIndicators: false) {
-                    Group {
-                        if hasText {
-                            transcriptText
-                        } else {
-                            Text(placeholder)
-                                .foregroundStyle(.secondary)
-                                .italic()
-                        }
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .id("transcript")
-                }
-                .onChange(of: manager.displayedTranscript) { _, _ in
-                    withAnimation(.easeOut(duration: 0.15)) {
-                        proxy.scrollTo("transcript", anchor: .bottom)
-                    }
+            Group {
+                if hasText {
+                    transcriptText
+                } else {
+                    Text(placeholder)
+                        .foregroundStyle(.secondary)
+                        .italic()
                 }
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
 
             if showSummary {
                 summarySection
             }
         }
         .padding(18)
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .frame(maxWidth: .infinity, alignment: .topLeading)
         .background(
             RoundedRectangle(cornerRadius: 16, style: .continuous)
                 .fill(.ultraThinMaterial)
@@ -48,7 +81,6 @@ struct LiveTranscriptionView: View {
             RoundedRectangle(cornerRadius: 16, style: .continuous)
                 .strokeBorder(Color.white.opacity(0.12), lineWidth: 1)
         )
-        .padding(8)
     }
 
     private var header: some View {
@@ -72,29 +104,33 @@ struct LiveTranscriptionView: View {
             Divider()
                 .opacity(0.15)
 
-            HStack(spacing: 6) {
-                Image(systemName: "list.bullet.rectangle")
-                    .font(.system(size: 10, weight: .semibold))
-                Text("Summary")
-                    .font(.system(size: 11, weight: .semibold))
+            HStack(spacing: 8) {
+                Picker("Summary level", selection: $manager.summaryLevel) {
+                    ForEach(SummaryLevel.allCases) { level in
+                        Text(level.title).tag(level)
+                    }
+                }
+                .pickerStyle(.segmented)
+                .labelsHidden()
+                .controlSize(.small)
+                .frame(maxWidth: 240)
+
                 summaryStatusIndicator
                 Spacer()
             }
             .foregroundStyle(.secondary)
 
-            ScrollView(.vertical, showsIndicators: false) {
-                Group {
-                    if !manager.summaryText.isEmpty {
-                        MarkdownText(markdown: manager.summaryText)
-                    } else if let placeholder = summaryPlaceholder {
-                        Text(placeholder)
-                            .font(.system(size: 13))
-                            .foregroundStyle(.secondary)
-                            .italic()
-                    }
+            Group {
+                if !manager.summaryText.isEmpty {
+                    MarkdownText(markdown: manager.summaryText)
+                } else if let placeholder = summaryPlaceholder {
+                    Text(placeholder)
+                        .font(.system(size: 13))
+                        .foregroundStyle(.secondary)
+                        .italic()
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
@@ -146,12 +182,21 @@ struct LiveTranscriptionView: View {
         switch manager.state {
         case .recording: return "Listening…"
         case .processing: return "Finishing up…"
+        case .reviewing: return "Copied — tap ⌥ to dismiss"
         case .idle: return "Done"
         }
     }
 
     private var placeholder: String {
         manager.state == .processing ? "Transcribing…" : "Start speaking…"
+    }
+}
+
+/// Reports the natural height of the panel content up to the window controller.
+private struct ContentHeightKey: PreferenceKey {
+    static var defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = max(value, nextValue())
     }
 }
 

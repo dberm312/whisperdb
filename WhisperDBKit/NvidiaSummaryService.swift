@@ -1,5 +1,23 @@
 import Foundation
 
+/// How aggressively the live summary reshapes the transcript, lightest → densest.
+/// `.organized` is the original (and default) behavior.
+public enum SummaryLevel: String, CaseIterable, Identifiable, Sendable {
+    case clean
+    case organized
+    case dense
+
+    public var id: String { rawValue }
+
+    public var title: String {
+        switch self {
+        case .clean: return "Clean"
+        case .organized: return "Organized"
+        case .dense: return "Dense"
+        }
+    }
+}
+
 /// Streams a continuously-refreshed, organized summary of a running transcript from
 /// NVIDIA's hosted DiffusionGemma model. The endpoint is OpenAI-compatible, so the
 /// request/SSE handling mirrors `OpenRouterService`.
@@ -18,20 +36,48 @@ public final class NvidiaSummaryService {
         self.apiKey = key
     }
 
-    private let systemPrompt = """
-        You are turning a running voice transcript into a concise, well organized live \
-        digest for the person who is speaking. Reformat everything said so far into clean \
-        markdown: use a bulleted list for to-dos or enumerated items, numbered sections \
-        for distinct topics, short headings when the content clearly spans different \
-        topics, and short plain paragraphs otherwise. Keep it tight and skimmable. \
-        Capture only what was actually said — do not add information, do not invent \
-        details, and do not include any preamble, commentary, or closing remarks. \
-        Output only the organized markdown.
-        """
+    private func systemPrompt(for level: SummaryLevel) -> String {
+        switch level {
+        case .clean:
+            return """
+                You are cleaning up a running voice transcript with the lightest possible \
+                touch, for the person who is speaking. Preserve their exact wording — do NOT \
+                rephrase, summarize, or remove filler words. Your only jobs: add paragraph \
+                breaks where natural pauses occur, fix obvious punctuation and capitalization, \
+                and turn content into a bulleted list ONLY when the speaker explicitly \
+                enumerates items ("first… second… third…"). Do not add headings. Do not reorder \
+                sentences. Do not add anything. Capture only what was actually said. Do not \
+                include any preamble, commentary, or closing remarks. Output only the cleaned \
+                text as plain markdown, preserving the original voice.
+                """
+        case .organized:
+            return """
+                You are turning a running voice transcript into a concise, well organized live \
+                digest for the person who is speaking. Reformat everything said so far into clean \
+                markdown: use a bulleted list for to-dos or enumerated items, numbered sections \
+                for distinct topics, short headings when the content clearly spans different \
+                topics, and short plain paragraphs otherwise. Keep it tight and skimmable. \
+                Capture only what was actually said — do not add information, do not invent \
+                details, and do not include any preamble, commentary, or closing remarks. \
+                Output only the organized markdown.
+                """
+        case .dense:
+            return """
+                You are compressing a running voice transcript into the densest possible live \
+                digest for the person who is speaking. Distill everything said so far down to the \
+                essential points and action items as terse bullet fragments — drop articles, \
+                filler, and every non-essential word while keeping each point unambiguous. Group \
+                under short headings only if the content clearly spans distinct topics. Maximize \
+                brevity. Capture only what was actually said — do not add information or invent \
+                details, and do not include any preamble, commentary, or closing remarks. Output \
+                only the dense markdown.
+                """
+        }
+    }
 
-    public func summarize(transcript: String) -> AsyncThrowingStream<String, Error> {
+    public func summarize(transcript: String, level: SummaryLevel) -> AsyncThrowingStream<String, Error> {
         stream(messages: [
-            ["role": "system", "content": systemPrompt],
+            ["role": "system", "content": systemPrompt(for: level)],
             ["role": "user", "content": transcript],
         ])
     }

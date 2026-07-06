@@ -8,6 +8,9 @@ enum RecordingState {
     case idle
     case recording
     case processing
+    /// Recording has stopped but the panel stays open showing the transcript +
+    /// summary for review. A second Option tap dismisses it.
+    case reviewing
 }
 
 /// Lifecycle of the live summary so the UI can show the right indicator.
@@ -30,9 +33,24 @@ final class TranscriptionManager: ObservableObject {
     @Published var partialText: String = ""
 
     /// Organized summary of the finalized transcript, refreshed after each speech pause.
+    /// Holds the text for the currently selected `summaryLevel`.
     @Published var summaryText: String = ""
     /// Current state of the summary pipeline (waiting for a pause vs. loading).
     @Published var summaryStatus: SummaryStatus = .idle
+
+    /// How aggressively to reshape the live summary. Persisted across launches.
+    @Published var summaryLevel: SummaryLevel {
+        didSet {
+            guard oldValue != summaryLevel else { return }
+            UserDefaults.standard.set(summaryLevel.rawValue, forKey: Self.summaryLevelKey)
+            switchSummaryLevel(from: oldValue)
+        }
+    }
+    private static let summaryLevelKey = "liveSummaryLevel"
+
+    /// Last finished summary per level for the current transcript, so switching back to
+    /// a previously-viewed level shows instantly (then refreshes if the transcript moved on).
+    private var summaryCache: [SummaryLevel: String] = [:]
 
     let recorder = AudioRecorder()
     let microphoneManager = AudioInputDeviceManager()
@@ -70,6 +88,10 @@ final class TranscriptionManager: ObservableObject {
     }
 
     init() {
+        let savedLevel = UserDefaults.standard.string(forKey: Self.summaryLevelKey)
+            .flatMap(SummaryLevel.init(rawValue:))
+        summaryLevel = savedLevel ?? .organized
+
         do {
             parakeetService = try ParakeetStreamingService()
         } catch {
@@ -86,10 +108,16 @@ final class TranscriptionManager: ObservableObject {
             }
         }
 
-        hotKeyManager.onStopRecording = { [weak self] in
+        // A clean Option-key tap means "stop" while recording, or "dismiss" while
+        // reviewing the stopped result.
+        hotKeyManager.onOptionTap = { [weak self] in
             Task { @MainActor in
-                guard let self = self, self.state == .recording else { return }
-                self.finishRecording()
+                guard let self else { return }
+                switch self.state {
+                case .recording: self.finishRecording()
+                case .reviewing: self.dismissReview()
+                case .idle, .processing: break
+                }
             }
         }
 
@@ -107,6 +135,10 @@ final class TranscriptionManager: ObservableObject {
             startRecording()
         case .recording:
             finishRecording()
+        case .reviewing:
+            // Dismiss the review panel and immediately begin a fresh recording.
+            dismissReview()
+            startRecording()
         case .processing:
             NSSound.beep()
         }
@@ -117,6 +149,7 @@ final class TranscriptionManager: ObservableObject {
         liveText = ""
         partialText = ""
         summaryText = ""
+        summaryCache.removeAll()
         summaryStatus = .idle
         microphoneManager.refreshDevices()
 
@@ -143,8 +176,9 @@ final class TranscriptionManager: ObservableObject {
 
         recordingStartedAt = Date()
         state = .recording
-        hotKeyManager.setRecording(true)
+        hotKeyManager.setListening(true)
         scheduleRecordingLimitTask()
+        LiveTranscriptionWindowController.shared.resetAutoFit()
         LiveTranscriptionWindowController.shared.show(with: self)
 
         streamingTask = Task { [weak self] in
@@ -167,7 +201,9 @@ final class TranscriptionManager: ObservableObject {
         }
     }
 
-    /// Stops the live stream, waits for the final transcript, and commits it.
+    /// Stops the live stream and waits for the final transcript. If anything was
+    /// captured it commits the transcript and enters `.reviewing` (panel stays open
+    /// until a second Option tap); otherwise it dismisses immediately.
     private func finishRecording(preservedError: String? = nil) {
         guard state == .recording else { return }
 
@@ -179,7 +215,6 @@ final class TranscriptionManager: ObservableObject {
             }
         let peakLevel = recorder.getPeakAudioLevel()
 
-        hotKeyManager.setRecording(false)
         recordingStartedAt = nil
         cancelRecordingLimitTask()
         if let preservedError {
@@ -199,32 +234,22 @@ final class TranscriptionManager: ObservableObject {
             await self.streamingTask?.value
             self.streamingTask = nil
 
-            defer {
-                self.summaryDebounceTask?.cancel()
-                self.summaryDebounceTask = nil
-                self.summaryTask?.cancel()
-                self.summaryTask = nil
-                self.summaryStatus = .idle
-                self.liveText = ""
-                self.partialText = ""
-                self.summaryText = ""
-                LiveTranscriptionWindowController.shared.hide()
-                self.state = .idle
-            }
-
             let finalText = self.displayedTranscript.trimmingCharacters(in: .whitespacesAndNewlines)
 
             if recordingDuration < self.minRecordingDuration && preservedError == nil {
+                self.dismissReview()
                 return
             }
             if peakLevel < self.silenceThreshold && preservedError == nil {
                 self.lastError = "Nothing was captured — no sound detected"
+                self.dismissReview()
                 return
             }
             guard !finalText.isEmpty else {
                 if preservedError == nil {
                     self.lastError = "No speech detected"
                 }
+                self.dismissReview()
                 return
             }
 
@@ -237,7 +262,28 @@ final class TranscriptionManager: ObservableObject {
             }
 
             self.lastError = preservedError
+            // Keep the panel open showing the transcript + summary; a second Option
+            // tap (or Option+Space) dismisses it. The Option-tap monitor stays active.
+            self.state = .reviewing
         }
+    }
+
+    /// Closes the live panel, clears the transcript/summary, and returns to idle.
+    /// Used both for the second Option tap during review and the immediate close when
+    /// nothing was captured.
+    func dismissReview() {
+        summaryDebounceTask?.cancel()
+        summaryDebounceTask = nil
+        summaryTask?.cancel()
+        summaryTask = nil
+        summaryStatus = .idle
+        liveText = ""
+        partialText = ""
+        summaryText = ""
+        summaryCache.removeAll()
+        hotKeyManager.setListening(false)
+        LiveTranscriptionWindowController.shared.hide()
+        state = .idle
     }
 
     /// Called on each finalized segment. We don't summarize immediately — instead we
@@ -268,12 +314,13 @@ final class TranscriptionManager: ObservableObject {
         let transcript = liveText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !transcript.isEmpty else { return }
 
+        let level = summaryLevel
         summaryStatus = .loading
         summaryTask?.cancel()
         summaryTask = Task { [weak self] in
             do {
                 var startedReplacing = false
-                for try await chunk in summaryService.summarize(transcript: transcript) {
+                for try await chunk in summaryService.summarize(transcript: transcript, level: level) {
                     try Task.checkCancellation()
                     guard let self else { return }
                     // Clear the previous summary only once the new one starts arriving,
@@ -284,7 +331,12 @@ final class TranscriptionManager: ObservableObject {
                     }
                     self.summaryText += chunk
                 }
-                self?.summaryStatus = .ready
+                guard let self else { return }
+                // Cache the finished result so switching back to this level is instant.
+                if self.summaryLevel == level {
+                    self.summaryCache[level] = self.summaryText
+                }
+                self.summaryStatus = .ready
             } catch is CancellationError {
                 // Superseded by newer speech — a newer request/timer will take over.
             } catch {
@@ -293,6 +345,21 @@ final class TranscriptionManager: ObservableObject {
                 self?.summaryStatus = .ready
             }
         }
+    }
+
+    /// Handles a change of `summaryLevel`: stash the current text under the old level,
+    /// show any cached text for the new level instantly, then refresh it against the
+    /// current transcript.
+    private func switchSummaryLevel(from oldLevel: SummaryLevel) {
+        guard state == .recording || state == .reviewing else { return }
+        if !summaryText.isEmpty {
+            summaryCache[oldLevel] = summaryText
+        }
+        summaryText = summaryCache[summaryLevel] ?? ""
+
+        let transcript = liveText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !transcript.isEmpty else { return }
+        runSummary()
     }
 
     func copyFromHistory(_ transcription: Transcription) {

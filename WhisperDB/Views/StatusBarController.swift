@@ -49,7 +49,7 @@ final class StatusBarController: NSObject, ObservableObject, NSMenuDelegate {
         guard let button = statusItem?.button else { return }
 
         switch state {
-        case .idle:
+        case .idle, .reviewing:
             button.image = makeAudioLinesIcon(size: 18, strokeWidth: 1.5, color: .controlTextColor, isTemplate: true)
             button.attributedTitle = NSAttributedString(string: "")
             button.title = ""
@@ -183,6 +183,8 @@ final class StatusBarController: NSObject, ObservableObject, NSMenuDelegate {
             statusText = "WhisperDB — Listening..."
         case .processing:
             statusText = "WhisperDB — Processing…"
+        case .reviewing:
+            statusText = "WhisperDB — Reviewing (tap ⌥ to dismiss)"
         }
         let statusItem = NSMenuItem(title: statusText, action: nil, keyEquivalent: "")
         statusItem.isEnabled = false

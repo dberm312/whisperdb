@@ -12,7 +12,10 @@ final class HotKeyManager {
     private var otherKeyPressedWhileOption = false
 
     var onToggle: (() -> Void)?
-    var onStopRecording: (() -> Void)?
+    /// Fires on a clean Option-key tap (Option pressed and released with no other key
+    /// in between). The caller decides what it means — stop recording, or dismiss the
+    /// review panel.
+    var onOptionTap: (() -> Void)?
     var onOpenHistory: (() -> Void)?
 
     init() {
@@ -29,11 +32,12 @@ final class HotKeyManager {
         }
     }
 
-    /// Enable/disable the Option-key-alone monitor for stopping recording.
-    /// Stop fires only on Option key release when no other key was pressed
-    /// in between — so Option+Tab (space switch) does not stop recording.
-    func setRecording(_ isRecording: Bool) {
-        if isRecording {
+    /// Enable/disable the Option-key-alone monitor. While enabled, `onOptionTap` fires
+    /// only on an Option key release when no other key was pressed in between — so
+    /// Option+Tab (space switch) does not trigger it. Stays enabled across both the
+    /// recording and review phases; disabled only once the panel is dismissed.
+    func setListening(_ listening: Bool) {
+        if listening {
             optionHeld = false
             otherKeyPressedWhileOption = false
 
@@ -55,7 +59,7 @@ final class HotKeyManager {
                         !self.otherKeyPressedWhileOption && otherModifiers.isEmpty
                     self.optionHeld = false
                     if cleanRelease {
-                        self.onStopRecording?()
+                        self.onOptionTap?()
                     }
                 }
             }
